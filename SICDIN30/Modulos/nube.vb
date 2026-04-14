@@ -1,4 +1,4 @@
-﻿Imports System
+Imports System
 Imports System.IO
 Module nube
 
@@ -124,61 +124,61 @@ Module nube
             Dim orden2 As OleDb.OleDbCommand
             Dim st2 As String = ""
             If arti.found Then
-                st2 = "UPDATE Articulos SET Descripción='" & lector("Descripción") & "',"
+                st2 = "UPDATE Articulos SET Descripción='" & EscapeSql(lector("Descripción")) & "',"
                 st2 &= "Menudeo=" & lector("Menudeo") & ","
                 st2 &= "Mayoreo=" & lector("Mayoreo") & ","
                 st2 &= "PME=" & voiddeleter(lector("PME")) & ","
                 st2 &= "Especial=" & voiddeleter(lector("Especial")) & ","
-                st2 &= "Paquete='" & voiddeleterstring(lector("Paquete")) & "',"
+                st2 &= "Paquete='" & EscapeSql(voiddeleterstring(lector("Paquete"))) & "',"
                 st2 &= "Precio=" & voiddeleter(lector("Precio")) & ","
                 st2 &= "PGmen=" & voiddeleter(lector("PGmen")) & ","
                 st2 &= "PGmay=" & voiddeleter(lector("PGmay")) & ","
-                st2 &= "cbarra='" & voiddeleterstring(lector("cbarra")) & "',"
-                st2 &= "Tipo='" & voiddeleterstring(lector("Tipo")) & "',"
+                st2 &= "cbarra='" & EscapeSql(voiddeleterstring(lector("cbarra"))) & "',"
+                st2 &= "Tipo='" & EscapeSql(voiddeleterstring(lector("Tipo"))) & "',"
                 st2 &= "Einf=" & lector("Einf") & ","
-                st2 &= "Notas='" & voiddeleterstring(lector("Notas")) & "',"
-                st2 &= "Tags='" & voiddeleterstring(lector("Tags")) & "',"
-                st2 &= "FUM='" & lector("FUM") & "',"
+                st2 &= "Notas='" & EscapeSql(voiddeleterstring(lector("Notas"))) & "',"
+                st2 &= "Tags='" & EscapeSql(voiddeleterstring(lector("Tags"))) & "',"
+                st2 &= "FUM='" & EscapeSql(lector("FUM")) & "',"
                 If lector("Del") = True Then
                     st2 &= "Del=" & lector("Del") & ","
-                    st2 &= "Fechadel='" & lector("Fechadel") & "',"
+                    st2 &= "Fechadel='" & EscapeSql(lector("Fechadel")) & "',"
                 End If
-                st2 &= "usuariofum='" & voiddeleterstring(lector("usuariofum")) & "' WHERE Clave='" & lector("clave") & "'"
+                st2 &= "usuariofum='" & EscapeSql(voiddeleterstring(lector("usuariofum"))) & "' WHERE Clave='" & EscapeSql(lector("clave")) & "'"
             Else
 
                 st2 = "INSERT INTO Articulos (Clave,Descripción,Menudeo,Mayoreo,PME,Especial,Existencias,Paquete,Precio,PGmen,PGmay,Fum,cbarra,Tipo,Einf,Notas,Tags,usuariofum) VALUES ('"
-                st2 &= lector("clave") & "','"
-                st2 &= lector("Descripción") & "',"
+                st2 &= EscapeSql(lector("clave")) & "','"
+                st2 &= EscapeSql(lector("Descripción")) & "',"
                 st2 &= lector("Menudeo") & ","
                 st2 &= lector("Mayoreo") & ","
                 st2 &= voiddeleter(lector("PME")) & ","
                 st2 &= voiddeleter(lector("Especial")) & ","
                 st2 &= 0 & ",'"
-                st2 &= voiddeleterstring(lector("Paquete")) & "',"
+                st2 &= EscapeSql(voiddeleterstring(lector("Paquete"))) & "',"
                 st2 &= voiddeleter(lector("Precio")) & ","
                 st2 &= voiddeleter(lector("PGmen")) & ","
                 st2 &= voiddeleter(lector("PGMay")) & ",'"
-                st2 &= lector("FUM") & "','"
-                st2 &= voiddeleterstring(lector("Cbarra")) & "','"
-                st2 &= voiddeleterstring(lector("Tipo")) & "',"
+                st2 &= EscapeSql(lector("FUM")) & "','"
+                st2 &= EscapeSql(voiddeleterstring(lector("Cbarra"))) & "','"
+                st2 &= EscapeSql(voiddeleterstring(lector("Tipo"))) & "',"
                 st2 &= voiddeleter(lector("Einf")) & ",'"
-                st2 &= voiddeleterstring(lector("Notas")) & "','"
-                st2 &= voiddeleterstring(lector("Tags")) & "','"
-                st2 &= voiddeleterstring(lector("usuariofum")) & "')"
+                st2 &= EscapeSql(voiddeleterstring(lector("Notas"))) & "','"
+                st2 &= EscapeSql(voiddeleterstring(lector("Tags"))) & "','"
+                st2 &= EscapeSql(voiddeleterstring(lector("usuariofum"))) & "')"
             End If
 
 
             orden2 = New OleDb.OleDbCommand(st2, conart)
-            orden2.ExecuteNonQuery()
             Try
-
+                orden2.ExecuteNonQuery()
             Catch ex As Exception
-                Exit Function
             End Try
 
             Dim orden3 As OleDb.OleDbCommand = New OleDb.OleDbCommand(st2, condummod)
-            orden3.ExecuteNonQuery()
-
+            Try
+                orden3.ExecuteNonQuery()
+            Catch ex As Exception
+            End Try
         End While
 
         lector.Close()
@@ -212,20 +212,24 @@ Module nube
                     If lastmodarchivo > lug.lastmod Then
                         Dim stfilework As String = "C:\sc3\dummybase\" & nameonly
                         Dim bopen As Boolean = False
-                        While bopen = False
+                        Dim intentos As Integer = 0
+                        While bopen = False AndAlso intentos < 10
                             Try
                                 File.Copy(archivo, stfilework, True)
                                 bopen = True
                             Catch ex As Exception
-
+                                intentos += 1
+                                System.Threading.Thread.Sleep(500)
                             End Try
                         End While
-                        If Not syncdatabaseart(stfilework, lug.lastmod) Then
-                            dialogs.advertencia("Ocurrio un error mientras se sincronizaba con la base" & vbNewLine & archivo)
+                        If bopen Then
+                            If Not syncdatabaseart(stfilework, lug.lastmod) Then
+                                dialogs.advertencia("Ocurrio un error mientras se sincronizaba con la base" & vbNewLine & archivo)
+                            End If
+                            Dim st As String = "UPDATE Lugares SET Lastmod='" & fechasql(lastmodarchivo) & "' WHERE Apodo='" & lug.apodo & "'"
+                            Dim orden As OleDb.OleDbCommand = New OleDb.OleDbCommand(st, consys)
+                            orden.ExecuteNonQuery()
                         End If
-                        Dim st As String = "UPDATE Lugares SET Lastmod='" & fechasql(lastmodarchivo) & "' WHERE Apodo='" & lug.apodo & "'"
-                        Dim orden As OleDb.OleDbCommand = New OleDb.OleDbCommand(st, consys)
-                        orden.ExecuteNonQuery()
 
                     End If
                 End If
@@ -246,31 +250,39 @@ Module nube
 
                         Dim stfilework As String = "C:\sc3\dummybase\" & nameonly
                         Dim bopen As Boolean = False
-                        While bopen = False
+                        Dim intentos As Integer = 0
+                        While bopen = False AndAlso intentos < 10
                             Try
                                 File.Copy(archivo, stfilework, True)
                                 bopen = True
                             Catch ex As Exception
-
+                                intentos += 1
+                                System.Threading.Thread.Sleep(500)
                             End Try
                         End While
-                        If Not syncdatabaseclnt(stfilework, lug.lastclnmod) Then
-
-                            dialogs.advertencia("Ocurrio un error mientras se sincronizaba con la base" & vbNewLine & archivo)
+                        If bopen Then
+                            If Not syncdatabaseclnt(stfilework, lug.lastclnmod) Then
+                                dialogs.advertencia("Ocurrio un error mientras se sincronizaba con la base" & vbNewLine & archivo)
+                            End If
+                            Dim st As String = "UPDATE Lugares SET Lastclnmod='" & fechasql(lastmodarchivo) & "' WHERE Apodo='" & lug.apodo & "'"
+                            Dim orden As OleDb.OleDbCommand = New OleDb.OleDbCommand(st, consys)
+                            orden.ExecuteNonQuery()
                         End If
-                        Dim st As String = "UPDATE Lugares SET Lastclnmod='" & fechasql(lastmodarchivo) & "' WHERE Apodo='" & lug.apodo & "'"
-                        Dim orden As OleDb.OleDbCommand = New OleDb.OleDbCommand(st, consys)
-                        orden.ExecuteNonQuery()
 
                     End If
                 End If
 
-            Next
-            lectorbasebusy = False
-            blockexit = False
         Catch ex As Exception
 
+        Finally
+            lectorbasebusy = False
+            blockexit = False
         End Try
     End Sub
+
+    Private Function EscapeSql(ByVal value As Object) As String
+        If IsDBNull(value) OrElse value Is Nothing Then Return ""
+        Return value.ToString().Replace("'", "''")
+    End Function
 
 End Module
