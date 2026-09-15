@@ -1,4 +1,4 @@
-﻿Imports System.Data.OleDb
+Imports System.Data.OleDb
 Imports System.IO.File
 Imports System.Threading
 Imports System.Runtime.InteropServices
@@ -1525,22 +1525,12 @@ Public Module Estructuras
             st &= user.idnameusu & "')"
             orden = New OleDb.OleDbCommand(st, conart)
             orden.ExecuteNonQuery()
-            Dim stdir As String = cloudpath & "\" & tienda.apodo
-            'Dim stdir As String = "C:\sc3\pruebabase\" & tienda.apodo
             Try
-
-
-                Dim condummod As OleDb.OleDbConnection = New OleDb.OleDbConnection("Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" & cloudpath & "\" & tienda.apodo & ".art;Persist Security Info=True;Jet OLEDB:Database Password=sganeo4")
-                condummod.Open()
-                orden = New OleDbCommand(st, condummod)
-                orden.ExecuteNonQuery()
-                condummod.Close()
-
                 autocompletarart()
-
                 notifier.cambiodeexistencias(clave)
+                nube.QueueArticuloDelta(Me, "UPSERT")
             Catch ex As Exception
-
+                nube.SyncLog("Error al encolar alta de artículo: " & ex.Message, True)
             End Try
         End Sub
         Public Sub setexistencias(cantidad As Decimal)
@@ -1593,17 +1583,11 @@ Public Module Estructuras
 
         End Sub
         Private Sub updateincloud(st As String)
-            Dim stdir As String = cloudpath & "\" & tienda.apodo
-            If Not System.IO.File.Exists(stdir & ".art") Then
-                ''MessageBox.Show("Error al actualizar la nube")
-                Return
-            End If
-            Dim condummod As OleDb.OleDbConnection = New OleDb.OleDbConnection("Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" & stdir & ".art;Persist Security Info=True;Jet OLEDB:Database Password=sganeo4")
-            condummod.Open()
-            orden = New OleDbCommand(st, condummod)
-            orden.ExecuteNonQuery()
-            condummod.Close()
-
+            Try
+                nube.QueueArticuloDelta(Me, "UPSERT")
+            Catch ex As Exception
+                nube.SyncLog("Error al encolar modificación de artículo: " & ex.Message, True)
+            End Try
         End Sub
         Public Sub deleteme(Optional ask As Boolean = True)
 
@@ -1622,8 +1606,11 @@ Public Module Estructuras
             'Dim st As String = "DELETE FROM Articulos WHERE Clave='" & clave & "'"
             Dim st As String = "UPDATE Articulos SET Del=TRUE, Fechadel='" & fechasql(Now) & "' WHERE  Clave='" & clave & "'"
             orden = New OleDb.OleDbCommand(st, conart)
-            orden.ExecuteNonQuery()
-            updateincloud(st)
+            Try
+                nube.QueueArticuloDelta(Me, "DELETE")
+            Catch ex As Exception
+                nube.SyncLog("Error al encolar eliminación de artículo: " & ex.Message, True)
+            End Try
             If System.IO.File.Exists(pathimage & clave & ".jpg") Then
                 System.IO.File.Delete(pathimage & clave & ".jpg")
             End If

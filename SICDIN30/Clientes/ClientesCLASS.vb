@@ -1,4 +1,4 @@
-﻿Imports System.Data.OleDb
+Imports System.Data.OleDb
 
 Imports System.Threading
 Imports System.Runtime.InteropServices
@@ -240,11 +240,13 @@ Public Class Cliente
         orden = New OleDbCommand(st, conclnt)
         orden.ExecuteNonQuery()
 
-        Dim conclnnube As OleDb.OleDbConnection = New OleDb.OleDbConnection("Provider=Microsoft.ACE.OLEDB.16.0;Data Source=" & cloudpath & "\" & tienda.apodo & ".cln;Persist Security Info=True;Jet OLEDB:Database Password=sganeo4")
-        conclnnube.Open()
-        orden = New OleDbCommand(st, conclnnube)
-        orden.ExecuteNonQuery()
-        conclnnube.Close()
+        Try
+            If addcloud Then
+                nube.QueueClienteDelta(Me, "UPSERT")
+            End If
+        Catch ex As Exception
+            nube.SyncLog("Error al encolar actualización de cliente: " & ex.Message, True)
+        End Try
 
     End Sub
     Public Sub addmov(detalle As String, Optional total As Decimal = 0, Optional pago As Decimal = 0, Optional adeudo As Decimal = 0)
@@ -306,11 +308,13 @@ Public Class Cliente
         orden = New OleDb.OleDbCommand(st, conclnt)
         orden.ExecuteNonQuery()
         autocompletarclnt()
-        Dim conclnnube As OleDb.OleDbConnection = New OleDb.OleDbConnection("Provider=Microsoft.ACE.OLEDB.16.0;Data Source=" & cloudpath & "\" & tienda.apodo & ".cln;Persist Security Info=True;Jet OLEDB:Database Password=sganeo4")
-        conclnnube.Open()
-        orden = New OleDbCommand(st, conclnnube)
-        orden.ExecuteNonQuery()
-        conclnnube.Close()
+        Try
+            If addcloud Then
+                nube.QueueClienteDelta(Me, "UPSERT")
+            End If
+        Catch ex As Exception
+            nube.SyncLog("Error al encolar alta de cliente: " & ex.Message, True)
+        End Try
     End Sub
     Public Sub deleteme(askme As Boolean, Optional delc As Boolean = True)
         If askme Then
@@ -326,6 +330,13 @@ Public Class Cliente
         Dim st As String = "DELETE FROM client WHERE Id=" & id
         orden = New OleDb.OleDbCommand(st, conclnt)
         orden.ExecuteNonQuery()
+        Try
+            If delcloud Then
+                nube.QueueClienteDelta(Me, "DELETE")
+            End If
+        Catch ex As Exception
+            nube.SyncLog("Error al encolar baja de cliente: " & ex.Message, True)
+        End Try
     End Sub
     Public Function staddcon() As String ''crea la cadena para de conexion para agregar cliente
         staddcon = Nombre & "|" & Direccion & "|" & mayoreo.ToString & "|" & credito & "|" & dc & "|" & especial.ToString & "|" & RFC & "|" & telcasa & "|" & telcel & "|" & mail & "|" & ultcompra.ToString

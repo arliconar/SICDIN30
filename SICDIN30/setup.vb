@@ -1,6 +1,7 @@
-﻿Imports System.Data.OleDb
+Imports System.Data.OleDb
 Imports System.Globalization
 Imports System.Net
+Imports System.Threading
 
 Public Class setup
     Public tien As lugar
@@ -74,11 +75,25 @@ Public Class setup
     End Sub
 
     Private Sub Button3_Click_1(sender As Object, e As EventArgs) Handles Button3.Click
-        If Desde.Checked Then
-
+        Dim resp = MessageBox.Show("¿Desea sincronizar con la nube ahora?" & vbCrLf & vbCrLf &
+                                   "- Seleccione 'Sí' para sincronizar cambios pendientes de otras tiendas." & vbCrLf &
+                                   "- Seleccione 'No' para exportar todo el catálogo local de artículos a la nube." & vbCrLf &
+                                   "- Seleccione 'Cancelar' para volver.", "Sincronización en la Nube", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question)
+        If resp = DialogResult.Yes Then
+            Dim t As New Thread(Sub()
+                                    nube.lectorbasecloud()
+                                    MessageBox.Show("Sincronización finalizada. Revise C:\sc3\sync.log para detalles.", "SICDIN", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                                End Sub)
+            t.IsBackground = True
+            t.Start()
+        ElseIf resp = DialogResult.No Then
+            Dim t As New Thread(Sub()
+                                    Dim total = nube.ExportFullCatalogDeltas()
+                                    MessageBox.Show("Exportación completa finalizada. Se exportaron " & total & " artículos a la nube." & vbCrLf & "Revise C:\sc3\sync.log para detalles.", "SICDIN", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                                End Sub)
+            t.IsBackground = True
+            t.Start()
         End If
-
-
     End Sub
     Private Sub syncall()
         OpenFileDialog1.ShowDialog()
