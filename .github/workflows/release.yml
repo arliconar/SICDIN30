@@ -1,0 +1,103 @@
+name: Build and Release SICDIN30
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Nombre de la versión o tag (ej: v1.0.0)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build & Publish Release
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine Release Tag
+        id: vars
+        shell: pwsh
+        run: |
+          $inputTag = "${{ github.event.inputs.tag_name }}".Trim()
+          if ($inputTag -ne "") {
+              $tag = $inputTag
+          } elseif ("${{ github.ref_type }}" -eq "tag") {
+              $tag = "${{ github.ref_name }}"
+          } else {
+              $tag = "v1.0." + (Get-Date -Format "yyyyMMdd.HHmm")
+          }
+          Write-Host "Using Release Tag: $tag"
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+
+      - name: Setup NuGet
+        uses: nuget/setup-nuget@v2
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Restore NuGet packages
+        run: nuget restore SICDIN30.sln
+
+      - name: Build Solution (Release x64)
+        run: |
+          msbuild SICDIN30.sln /p:Configuration=Release /p:Platform=x64 /v:minimal
+
+      - name: Package Release Assets
+        shell: pwsh
+        run: |
+          $tag = "${{ steps.vars.outputs.tag }}"
+          $dist = "dist"
+          if (Test-Path $dist) { Remove-Item -Recurse -Force $dist }
+          $fullPkg = "$dist\SICDIN30-Full"
+          New-Item -ItemType Directory -Path "$fullPkg\Resources" -Force | Out-Null
+
+          # Copiar ejecutable y archivo de configuración
+          Copy-Item "SICDIN30\bin\x64\Release\SICDIN30.exe" "$dist\"
+          Copy-Item "SICDIN30\bin\x64\Release\SICDIN30.exe.config" "$dist\"
+          Copy-Item "SICDIN30\bin\x64\Release\SICDIN30.exe" "$fullPkg\"
+          Copy-Item "SICDIN30\bin\x64\Release\SICDIN30.exe.config" "$fullPkg\"
+
+          # Copiar archivo de base de datos / estructura si existe
+          if (Test-Path "syste.dat") {
+              Copy-Item "syste.dat" "$fullPkg\"
+          }
+
+          # 1. Empaquetar todo lo de Resources en un zip dedicado (resources.zip)
+          if (Test-Path "SICDIN30\Resources") {
+              Copy-Item "SICDIN30\Resources\*" "$fullPkg\Resources\" -Recurse
+              Compress-Archive -Path "SICDIN30\Resources\*" -DestinationPath "$dist\resources.zip" -Force
+          }
+
+          # 2. Empaquetar la distribución completa lista para usar (ejecutable + resources + config)
+          Compress-Archive -Path "$fullPkg\*" -DestinationPath "$dist\SICDIN30-Full-$tag.zip" -Force
+
+          Write-Host "Archivos generados en $dist:"
+          Get-ChildItem $dist
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.vars.outputs.tag }}
+          name: Release ${{ steps.vars.outputs.tag }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            dist/SICDIN30.exe
+            dist/SICDIN30.exe.config
+            dist/resources.zip
+            dist/SICDIN30-Full-*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
