@@ -1,4 +1,4 @@
-﻿Imports System.Drawing.Printing
+Imports System.Drawing.Printing
 Imports System.Net.Http.Headers
 
 Public Class pagof
@@ -393,10 +393,15 @@ Public Class pagof
             dgpago.Columns.Item("agregar").Visible = False
             dgpago.Columns.Item("Del").Visible = False
             'addventapago()
-            Dim ticketp As New PaperSize("Ticket", 220, 1400)
-            printticket.PrinterSettings = printd.PrinterSettings
-            printticket.DefaultPageSettings.PaperSize = ticketp
-            printticket.Print()
+            Try
+                Dim ticketp As New PaperSize("Ticket", 220, 1400)
+                printticket.PrinterSettings = printd.PrinterSettings
+                printticket.DefaultPageSettings.PaperSize = ticketp
+                printticket.Print()
+            Catch ex As Exception
+                LogAppError(ex, "pagof.printticket.Print")
+                MessageBox.Show("No se pudo imprimir el ticket:" & vbCrLf & ex.Message & vbCrLf & vbCrLf & "Verifique que la impresora esté encendida y conectada.", "Aviso de Impresión", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            End Try
         End If
 
     End Sub

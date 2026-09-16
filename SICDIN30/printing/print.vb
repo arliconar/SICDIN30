@@ -1,4 +1,4 @@
-﻿Imports System.Drawing
+Imports System.Drawing
 Imports System.Drawing.Printing
 Module print
     Class imprimir
@@ -384,7 +384,14 @@ Module print
             nbici = 0
             nini = 0
             pagnota.labelnota.Text = "Reparación"
-            pd.Print()
+            Try
+                pd.Print()
+            Catch ex As Exception
+                LogAppError(ex, "print.pd.Print")
+                MessageBox.Show("No se pudo imprimir la reparación:" & vbCrLf & ex.Message, "Aviso de Impresión", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Finally
+                RemoveHandler pd.PrintPage, AddressOf imprimirrepara
+            End Try
 
         End Sub
         Public Sub pagcal(narticulos As Integer) ''calcula paginas

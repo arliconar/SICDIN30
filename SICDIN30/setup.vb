@@ -81,15 +81,25 @@ Public Class setup
                                    "- Seleccione 'Cancelar' para volver.", "Sincronización en la Nube", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question)
         If resp = DialogResult.Yes Then
             Dim t As New Thread(Sub()
-                                    nube.lectorbasecloud()
-                                    MessageBox.Show("Sincronización finalizada. Revise C:\sc3\sync.log para detalles.", "SICDIN", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                                    Try
+                                        nube.lectorbasecloud()
+                                        MessageBox.Show("Sincronización finalizada. Revise C:\sc3\sync.log para detalles.", "SICDIN", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                                    Catch ex As Exception
+                                        LogAppError(ex, "setup.Button3_Click_1.lectorbasecloud")
+                                        MessageBox.Show("Error durante la sincronización: " & ex.Message, "SICDIN", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                                    End Try
                                 End Sub)
             t.IsBackground = True
             t.Start()
         ElseIf resp = DialogResult.No Then
             Dim t As New Thread(Sub()
-                                    Dim total = nube.ExportFullCatalogDeltas()
-                                    MessageBox.Show("Exportación completa finalizada. Se exportaron " & total & " artículos a la nube." & vbCrLf & "Revise C:\sc3\sync.log para detalles.", "SICDIN", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                                    Try
+                                        Dim total = nube.ExportFullCatalogDeltas()
+                                        MessageBox.Show("Exportación completa finalizada. Se exportaron " & total & " artículos a la nube." & vbCrLf & "Revise C:\sc3\sync.log para detalles.", "SICDIN", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                                    Catch ex As Exception
+                                        LogAppError(ex, "setup.Button3_Click_1.ExportFullCatalogDeltas")
+                                        MessageBox.Show("Error durante la exportación: " & ex.Message, "SICDIN", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                                    End Try
                                 End Sub)
             t.IsBackground = True
             t.Start()

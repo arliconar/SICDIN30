@@ -1,96 +1,164 @@
-﻿Imports System.IO
+Imports System.IO
 Imports System.Threading
 
 
 Module garbage
     Public timeoldart As Integer = 30
     Public timeoldvent As Integer = 1825
+
     Public Sub startgarbagecolector()
-        Dim hilo As Thread = New Thread(New ThreadStart(AddressOf threadgarbage))
-
+        Try
+            Dim hilo As Thread = New Thread(New ThreadStart(AddressOf threadgarbage))
+            hilo.IsBackground = True
+            hilo.Start()
+        Catch ex As Exception
+            LogAppError(ex, "garbage.startgarbagecolector")
+        End Try
     End Sub
+
     Public Sub threadgarbage()
-        deloldbici()
-        deloldapar()
-        deloldart()
-        deloldlv()
-        deloldvent()
+        Try
+            deloldbici()
+            deloldapar()
+            deloldart()
+            deloldlv()
+            deloldvent()
+        Catch ex As Exception
+            LogAppError(ex, "garbage.threadgarbage")
+        End Try
     End Sub
-    Public Sub deloldbici()
-        Dim st As String = "SELECT Folio FROM nota WHERE (Fechae<'#" & fechasql(Now.AddDays(-timeoldvent)) & "#' AND bentregada=TRUE) OR (Fcan=TRUE AND Fcancelada<'#" & fechasql(Now.AddDays(-timeoldvent)) & "#')"
-        Dim orden As OleDb.OleDbCommand = New OleDb.OleDbCommand(st, conbicrep)
-        Dim lector As OleDb.OleDbDataReader = orden.ExecuteReader
-        While lector.Read
-            Dim folio As String = lector("Folio")
-            Dim st2 As String = "DELETE FROM art WHERE Folio='" & folio & "'"
-            Dim orden2 As OleDb.OleDbCommand = New OleDb.OleDbCommand(st2, conbicrep)
-            orden2.ExecuteNonQuery()
-            st2 = "DELETE FROM bici WHERE Folio='" & folio & "'"
-            orden2 = New OleDb.OleDbCommand(st2, conbicrep)
-            orden2.ExecuteNonQuery()
-            st2 = "DELETE FROM Mod WHERE Folio='" & folio & "'"
-            orden2 = New OleDb.OleDbCommand(st2, conbicrep)
-            orden2.ExecuteNonQuery()
-            st2 = "DELETE FROM pagos WHERE Folio='" & folio & "'"
-            orden2 = New OleDb.OleDbCommand(st2, conbicrep)
-            orden2.ExecuteNonQuery()
-        End While
-        lector.Close()
-        st = "DELETE FROM nota WHERE (Fechae<'#" & fechasql(Now.AddDays(-timeoldvent)) & "#' AND bentregada=TRUE) OR (Fcan=TRUE AND Fcancelada<'#" & fechasql(Now.AddDays(-timeoldvent)) & "#')"
-        orden = New OleDb.OleDbCommand(st, conbicrep)
-        orden.ExecuteNonQuery()
 
+    Public Sub deloldbici()
+        Try
+            Dim folios As New List(Of String)()
+            Dim st As String = "SELECT Folio FROM nota WHERE (Fechae<'#" & fechasql(Now.AddDays(-timeoldvent)) & "#' AND bentregada=TRUE) OR (Fcan=TRUE AND Fcancelada<'#" & fechasql(Now.AddDays(-timeoldvent)) & "#')"
+            SyncLock conbicrep
+                Using cmd As New OleDb.OleDbCommand(st, conbicrep)
+                    Using rdr As OleDb.OleDbDataReader = cmd.ExecuteReader()
+                        While rdr.Read()
+                            folios.Add(rdr("Folio").ToString())
+                        End While
+                    End Using
+                End Using
+
+                For Each folio In folios
+                    Dim safeFolio = sqlSafe(folio)
+                    Using cmd2 As New OleDb.OleDbCommand("DELETE FROM art WHERE Folio='" & safeFolio & "'", conbicrep)
+                        cmd2.ExecuteNonQuery()
+                    End Using
+                    Using cmd2 As New OleDb.OleDbCommand("DELETE FROM bici WHERE Folio='" & safeFolio & "'", conbicrep)
+                        cmd2.ExecuteNonQuery()
+                    End Using
+                    Using cmd2 As New OleDb.OleDbCommand("DELETE FROM Mod WHERE Folio='" & safeFolio & "'", conbicrep)
+                        cmd2.ExecuteNonQuery()
+                    End Using
+                    Using cmd2 As New OleDb.OleDbCommand("DELETE FROM pagos WHERE Folio='" & safeFolio & "'", conbicrep)
+                        cmd2.ExecuteNonQuery()
+                    End Using
+                Next
+
+                Using cmdDel As New OleDb.OleDbCommand(st.Replace("SELECT Folio", "DELETE"), conbicrep)
+                    cmdDel.ExecuteNonQuery()
+                End Using
+            End SyncLock
+        Catch ex As Exception
+            LogAppError(ex, "garbage.deloldbici")
+        End Try
     End Sub
 
     Public Sub deloldart()
-        Dim st As String = "DELETE FROM Articulos WHERE Del=TRUE AND Fechadel<'#" & fechasql(Now.AddDays(-timeoldart)) & "#'"
-        Dim orden As OleDb.OleDbCommand = New OleDb.OleDbCommand(st, conart)
-        orden.ExecuteNonQuery()
-
+        Try
+            Dim st As String = "DELETE FROM Articulos WHERE Del=TRUE AND Fechadel<'#" & fechasql(Now.AddDays(-timeoldart)) & "#'"
+            SyncLock conart
+                Using cmd As New OleDb.OleDbCommand(st, conart)
+                    cmd.ExecuteNonQuery()
+                End Using
+            End SyncLock
+        Catch ex As Exception
+            LogAppError(ex, "garbage.deloldart")
+        End Try
     End Sub
+
     Public Sub deloldapar()
-        Dim st As String = "SELECT Folio FROM Apartado WHERE Fentregado<'#" & fechasql(Now.AddDays(-timeoldvent)) & "#'"
-        Dim orden As OleDb.OleDbCommand = New OleDb.OleDbCommand(st, convent)
-        Dim lector As OleDb.OleDbDataReader = orden.ExecuteReader
-        While lector.Read
-            Dim st2 As String = "DELETE FROM Articulos WHERE FOLIO='" & lector("Folio") & "'"
-            Dim orden2 As OleDb.OleDbCommand = New OleDb.OleDbCommand(st2, convent)
-            orden2.ExecuteNonQuery()
-            st2 = "DELETE FROM pagoapartado WHERE Folio='" & lector("Folio") & "'" ''Borramos clientes de la nota
-            orden2 = New OleDb.OleDbCommand(st2, convent)
-            orden2.ExecuteNonQuery()
-        End While
-        lector.Close()
+        Try
+            Dim folios As New List(Of String)()
+            Dim st As String = "SELECT Folio FROM Apartado WHERE Fentregado<'#" & fechasql(Now.AddDays(-timeoldvent)) & "#'"
+            SyncLock convent
+                Using cmd As New OleDb.OleDbCommand(st, convent)
+                    Using rdr As OleDb.OleDbDataReader = cmd.ExecuteReader()
+                        While rdr.Read()
+                            folios.Add(rdr("Folio").ToString())
+                        End While
+                    End Using
+                End Using
 
-        st = "DELETE FROM Apartado WHERE Fechae<'#" & fechasql(Now.AddDays(-timeoldvent)) & "#'" 'Borramos la venta
-        orden = New OleDb.OleDbCommand(st)
-        orden.ExecuteNonQuery()
+                For Each folio In folios
+                    Dim safeFolio = sqlSafe(folio)
+                    Using cmd2 As New OleDb.OleDbCommand("DELETE FROM Articulos WHERE FOLIO='" & safeFolio & "'", convent)
+                        cmd2.ExecuteNonQuery()
+                    End Using
+                    Using cmd2 As New OleDb.OleDbCommand("DELETE FROM pagoapartado WHERE Folio='" & safeFolio & "'", convent)
+                        cmd2.ExecuteNonQuery()
+                    End Using
+                Next
+
+                st = "DELETE FROM Apartado WHERE Fechae<'#" & fechasql(Now.AddDays(-timeoldvent)) & "#'"
+                Using cmdDel As New OleDb.OleDbCommand(st, convent)
+                    cmdDel.ExecuteNonQuery()
+                End Using
+            End SyncLock
+        Catch ex As Exception
+            LogAppError(ex, "garbage.deloldapar")
+        End Try
     End Sub
+
     Public Sub deloldvent()
-        Dim st As String = "SELECT Folio FROM venta WHERE Fechae<'#" & fechasql(Now.AddDays(-timeoldvent)) & "#'"
-        Dim orden As OleDb.OleDbCommand = New OleDb.OleDbCommand(st, convent)
-        Dim lector As OleDb.OleDbDataReader = orden.ExecuteReader
-        While lector.Read
-            Dim st2 As String = "DELETE FROM Articulos WHERE FOLIO='" & lector("Folio") & "'" 'Borramos articulos de la nota
-            Dim orden2 As OleDb.OleDbCommand = New OleDb.OleDbCommand(st2, convent)
-            orden2.ExecuteNonQuery()
-            st2 = "DELETE FROM Clientes WHERE Folio='" & lector("Folio") & "'" ''Borramos clientes de la nota
-            orden2 = New OleDb.OleDbCommand(st2, convent)
-            orden2.ExecuteNonQuery()
+        Try
+            Dim folios As New List(Of String)()
+            Dim st As String = "SELECT Folio FROM venta WHERE Fechae<'#" & fechasql(Now.AddDays(-timeoldvent)) & "#'"
+            SyncLock convent
+                Using cmd As New OleDb.OleDbCommand(st, convent)
+                    Using rdr As OleDb.OleDbDataReader = cmd.ExecuteReader()
+                        While rdr.Read()
+                            folios.Add(rdr("Folio").ToString())
+                        End While
+                    End Using
+                End Using
 
-        End While
-        lector.Close()
-        st = "DELETE FROM venta WHERE Fechae<'#" & fechasql(Now.AddDays(-timeoldvent)) & "#'" 'Borramos la venta
-        orden = New OleDb.OleDbCommand(st)
-        orden.ExecuteNonQuery()
+                For Each folio In folios
+                    Dim safeFolio = sqlSafe(folio)
+                    Using cmd2 As New OleDb.OleDbCommand("DELETE FROM Articulos WHERE FOLIO='" & safeFolio & "'", convent)
+                        cmd2.ExecuteNonQuery()
+                    End Using
+                    Using cmd2 As New OleDb.OleDbCommand("DELETE FROM Clientes WHERE Folio='" & safeFolio & "'", convent)
+                        cmd2.ExecuteNonQuery()
+                    End Using
+                Next
+
+                st = "DELETE FROM venta WHERE Fechae<'#" & fechasql(Now.AddDays(-timeoldvent)) & "#'"
+                Using cmdDel As New OleDb.OleDbCommand(st, convent)
+                    cmdDel.ExecuteNonQuery()
+                End Using
+            End SyncLock
+        Catch ex As Exception
+            LogAppError(ex, "garbage.deloldvent")
+        End Try
     End Sub
-    Public Sub deloldlv()
-        Dim st As String = "DELETE FROM lv WHERE fecha<'#" & fechasql(Now.AddDays(-timeoldvent)) & "#'"
-        Dim orden As OleDb.OleDbCommand = New OleDb.OleDbCommand(st, convent)
-        orden.ExecuteNonQuery()
-        st = "DELETE FROM Dias WHERE Fecha<'#" & fechasql(Now.AddDays(-timeoldvent)) & "#'"
-        orden = New OleDb.OleDbCommand(st, convent)
-        orden.ExecuteNonQuery()
 
+    Public Sub deloldlv()
+        Try
+            SyncLock convent
+                Dim st As String = "DELETE FROM lv WHERE fecha<'#" & fechasql(Now.AddDays(-timeoldvent)) & "#'"
+                Using cmd As New OleDb.OleDbCommand(st, convent)
+                    cmd.ExecuteNonQuery()
+                End Using
+                st = "DELETE FROM Dias WHERE Fecha<'#" & fechasql(Now.AddDays(-timeoldvent)) & "#'"
+                Using cmd As New OleDb.OleDbCommand(st, convent)
+                    cmd.ExecuteNonQuery()
+                End Using
+            End SyncLock
+        Catch ex As Exception
+            LogAppError(ex, "garbage.deloldlv")
+        End Try
     End Sub
 End Module

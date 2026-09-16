@@ -1,4 +1,4 @@
-﻿Imports System.Threading
+Imports System.Threading
 Imports System.Data.OleDb
 'Imports System.Windows.Forms.Design
 
@@ -15,14 +15,25 @@ Public Module bases
     Public foliocancelar2 As String = ""
 
     Public Sub autocompletarclnt() 'Iniciarlización Autocompletar de articulos
-        aclnt.Clear()
-        orden = New OleDb.OleDbCommand("SELECT Id, Nombre FROM client", conclnt)
-        lector = orden.ExecuteReader
-        While lector.Read
-            aclnt.Add(lector("Nombre") & ":" & lector("Id"))
-            aclnt.Add(lector("Id") & ":" & lector("Nombre"))
-        End While
-        lector.Close()
+        Try
+            Dim items As New List(Of String)()
+            SyncLock conclnt
+                Using cmd As New OleDb.OleDbCommand("SELECT Id, Nombre FROM client", conclnt)
+                    Using rdr As OleDb.OleDbDataReader = cmd.ExecuteReader()
+                        While rdr.Read()
+                            items.Add(rdr("Nombre") & ":" & rdr("Id"))
+                            items.Add(rdr("Id") & ":" & rdr("Nombre"))
+                        End While
+                    End Using
+                End Using
+            End SyncLock
+            aclnt.Clear()
+            For Each itm In items
+                aclnt.Add(itm)
+            Next
+        Catch ex As Exception
+            LogAppError(ex, "basesmod.autocompletarclnt")
+        End Try
     End Sub
     Public Function voiddeleterstring(lector As Object, Optional defecto As String = "") As String
         ''elimina el vacio de la base de datos para strings
@@ -619,37 +630,41 @@ Public Module bases
 
     End Sub
     Public Sub cancelarbicithread()
+        Try
+            Dim strazon As String = ""
+            Try
+                strazon = razon.razont.Text
+            Catch
+                strazon = ""
+            End Try
+            Dim safeRazon As String = sqlSafe(strazon)
+            Dim stt As String = ""
+            If idcancelar <> 0 Then
+                stt = " AND ID=" & idcancelar
+                Dim stn As String = "UPDATE nota SET Fcan=TRUE,Fcancelada='" & nowsql() & "',Rcancel='" & safeRazon & "' WHERE Folio='" & sqlSafe(foliocancelar) & "'"
+                SyncLock conbicrep
+                    Using cmd As New OleDb.OleDbCommand(stn, conbicrep)
+                        cmd.ExecuteNonQuery()
+                    End Using
+                End SyncLock
+            End If
 
-        Dim st As String = ""
-        Dim strazon As String = razon.razont.Text
-        Dim stn As String = ""
-        Dim stt = ""
-        If idcancelar <> 0 Then
-            stt = " AND ID=" & idcancelar
+            Dim st As String = "UPDATE art SET cancel=TRUE WHERE Folio='" & sqlSafe(foliocancelar) & "'" & stt
+            SyncLock conbicrep
+                Using cmd As New OleDb.OleDbCommand(st, conbicrep)
+                    cmd.ExecuteNonQuery()
+                End Using
+            End SyncLock
 
-            stn = "UPDATE nota SET Fcan=TRUE,Fcancelada='" & nowsql() & "',Rcancel='" & strazon & "' WHERE Folio='" & foliocancelar & "'"
-            orden = New OleDb.OleDbCommand(stn, conbicrep)
-            orden.ExecuteNonQuery()
-        End If
-
-        st = "UPDATE art SET cancel=TRUE WHERE Folio='" & foliocancelar & "'" & stt
-        orden = New OleDb.OleDbCommand(st, conbicrep)
-        lector = orden.ExecuteReader
-        lector.Close()
-
-        'st = "SELECT cantidad,clave FROM Artcancel WHERE Folio='" & foliocancelar & "'" & stt
-        'orden = New OleDb.OleDbCommand(st, conbicrep)
-        'lector = orden.ExecuteReader
-        'While lector.Read
-        '    MessageBox.Show(lector("clave"))
-        '    Dim arte As articuloventa = New articuloventa(lector("clave"))
-        '    arte.modexistencias(lector("cantidad"), True)
-        'End While
-        'lector.Close()
-        st = "UPDATE bici SET bcancelada=TRUE,Cancelada='" & nowsql() & "',Rcancel='" & strazon & "' WHERE Folio='" & foliocancelar & "'"
-        st &= stt
-        orden = New OleDb.OleDbCommand(st, conbicrep)
-        orden.ExecuteNonQuery()
+            st = "UPDATE bici SET bcancelada=TRUE,Cancelada='" & nowsql() & "',Rcancel='" & safeRazon & "' WHERE Folio='" & sqlSafe(foliocancelar) & "'" & stt
+            SyncLock conbicrep
+                Using cmd As New OleDb.OleDbCommand(st, conbicrep)
+                    cmd.ExecuteNonQuery()
+                End Using
+            End SyncLock
+        Catch ex As Exception
+            LogAppError(ex, "basesmod.cancelarbicithread")
+        End Try
     End Sub
 
     Public Sub desfinalizarbici(ByVal folio As String, Optional ByVal id As Integer = 0)

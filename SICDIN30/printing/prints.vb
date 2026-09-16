@@ -1,4 +1,4 @@
-﻿Imports System.Windows.Forms.VisualStyles
+Imports System.Windows.Forms.VisualStyles
 
 Module prints
     Dim p2 As PictureBox
@@ -769,9 +769,16 @@ Module prints
             nfin = artv.articulo.Count
         End If
         booleancalp = False
-        p1.Print()
-        imprimirventa = True
-        RemoveHandler p1.PrintPage, AddressOf imprimire
+        Try
+            p1.Print()
+            imprimirventa = True
+        Catch ex As Exception
+            LogAppError(ex, "prints.imprimirventa.p1.Print")
+            MessageBox.Show("No se pudo imprimir:" & vbCrLf & ex.Message, "Aviso de Impresión", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            imprimirventa = False
+        Finally
+            RemoveHandler p1.PrintPage, AddressOf imprimire
+        End Try
 
     End Function
 

@@ -1,4 +1,4 @@
-﻿
+
 Public Class catalogo
     Dim iamdialog As Boolean = False
     Dim fechabus As String = ""
@@ -105,21 +105,25 @@ Public Class catalogo
         Return 0
     End Function
     Private Sub colorimag()
+        Try
+            If dgcat Is Nothing OrElse dgcat.Rows.Count = 0 OrElse dgcat.FirstDisplayedScrollingRowIndex < 0 Then
+                Exit Sub
+            End If
 
-
-        For i = dgcat.FirstDisplayedScrollingRowIndex To dgcat.FirstDisplayedScrollingRowIndex + dgcat.DisplayedRowCount(False) - 1
-            Dim stfile As String = pathimage & dgcat("Clave", i).Value & ".jpg"
-            Dim stdir As String = pathimage & dgcat("Clave", i).Value
-            Select Case checkimag(dgcat("Clave", i).Value)
-                Case 1
-                    dgcat("Verc", i).Style.BackColor = Color.ForestGreen
-                Case 2
-                    dgcat("Verc", i).Style.BackColor = Color.BlueViolet
-            End Select
-
-        Next
-
-
+            Dim endIndex As Integer = Math.Min(dgcat.FirstDisplayedScrollingRowIndex + dgcat.DisplayedRowCount(False) - 1, dgcat.Rows.Count - 1)
+            For i = dgcat.FirstDisplayedScrollingRowIndex To endIndex
+                If i >= 0 AndAlso i < dgcat.Rows.Count AndAlso dgcat("Clave", i).Value IsNot Nothing Then
+                    Dim claveVal As String = dgcat("Clave", i).Value.ToString()
+                    Select Case checkimag(claveVal)
+                        Case 1
+                            dgcat("Verc", i).Style.BackColor = Color.ForestGreen
+                        Case 2
+                            dgcat("Verc", i).Style.BackColor = Color.BlueViolet
+                    End Select
+                End If
+            Next
+        Catch
+        End Try
     End Sub
     Public Function checkimag(clave As String) As Integer
         checkimag = 0

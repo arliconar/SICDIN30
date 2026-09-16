@@ -1,4 +1,4 @@
-﻿Imports System
+Imports System
 
 Imports System.IO
 Imports System.Threading
@@ -343,9 +343,13 @@ Public Class main
             Case DialogResult.Yes
                 e.Cancel = True
                 If Not blockexit Then
-                    Dim hilo As Thread = New Thread(New ThreadStart(AddressOf backinup))
-                    hilo.Start()
-
+                    Try
+                        Dim hilo As Thread = New Thread(New ThreadStart(AddressOf backinup))
+                        hilo.IsBackground = True
+                        hilo.Start()
+                    Catch ex As Exception
+                        LogAppError(ex, "main.backinup.thread")
+                    End Try
                 Else
                     wait.loader()
 
@@ -404,11 +408,15 @@ Public Class main
         loadadmin()
         Me.Show()
         Me.Text = "SICDIN 3.0: " & user.nombre & " en " & tienda.nombre
-        lector.Close()
+        If lector IsNot Nothing AndAlso Not lector.IsClosed Then
+            Try
+                lector.Close()
+            Catch
+            End Try
+        End If
 
         Me.ppos.Controls.Add(catalogo.panelcat)
         catalogo.reloadcat()
-
         Me.ppos.Controls.Item("panelcat").BringToFront()
         ' Dim hilo2 As Thread = New Thread(New ThreadStart(AddressOf lectorbasecloud))
         ' hilo2.Start()
@@ -464,15 +472,23 @@ Public Class main
     End Sub
 
     Private Sub CHECKCLOUD_Tick(sender As Object, e As EventArgs) Handles CHECKCLOUD.Tick
-        Dim hilo2 As Thread = New Thread(New ThreadStart(AddressOf lectorbasecloud))
-        hilo2.Start()
+        Try
+            Dim hilo2 As Thread = New Thread(New ThreadStart(AddressOf lectorbasecloud))
+            hilo2.IsBackground = True
+            hilo2.Start()
+        Catch ex As Exception
+            LogAppError(ex, "main.CHECKCLOUD_Tick")
+        End Try
     End Sub
 
     Private Sub updatet_ButtonClick(sender As Object, e As EventArgs) Handles updatet.ButtonClick
-        'Dim hilo As Thread = New Thread(New ThreadStart(AddressOf duplicadorbase))
-        'hilo.Start()
-        Dim hilo2 As Thread = New Thread(New ThreadStart(AddressOf lectorbasecloud))
-        hilo2.Start()
+        Try
+            Dim hilo2 As Thread = New Thread(New ThreadStart(AddressOf lectorbasecloud))
+            hilo2.IsBackground = True
+            hilo2.Start()
+        Catch ex As Exception
+            LogAppError(ex, "main.updatet_ButtonClick")
+        End Try
     End Sub
 
     Private Sub ToolStripStatusLabel1_Click(sender As Object, e As EventArgs)

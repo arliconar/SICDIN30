@@ -1,4 +1,4 @@
-﻿Imports System.Reflection
+Imports System.Reflection
 Public Class session
     Dim botonuser() As Button
     Dim widhttotal As Integer = 0
@@ -29,70 +29,73 @@ Public Class session
 
     End Sub
     Private Sub loadusers()
+        Try
+            Dim st As String = "SELECT Id,Nombre,pass,Foto FROM Usuario WHERE Activo=TRUE ORDER BY FU DESC"
+            If firttime Then
+                Try
+                    conusu.Open()
+                Catch exConn As Exception
+                    LogAppError(exConn, "session.loadusers.conusu.Open")
+                    MessageBox.Show("No se pudo conectar a la base de usuarios (C:\sc3\usu.dat):" & vbCrLf & exConn.Message, "Error de Inicio", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                    Exit Sub
+                End Try
+            End If
 
+            Dim i As Integer = 0
+            activeusera = New usuario
 
+            SyncLock conusu
+                Using cmd As New OleDb.OleDbCommand(st, conusu)
+                    Using rdr As OleDb.OleDbDataReader = cmd.ExecuteReader()
+                        While rdr.Read()
+                            ReDim Preserve botonuser(i)
+                            botonuser(i) = New Button
 
+                            With botonuser(i)
+                                .TextAlign = ContentAlignment.BottomCenter
+                                Select Case rdr("Foto").ToString()
+                                    Case "Hombre"
+                                        .BackgroundImage = SICDIN30.My.Resources.hombre
+                                    Case "Mujer"
+                                        .BackgroundImage = SICDIN30.My.Resources.mujeruser
+                                    Case "Flor"
+                                        .BackgroundImage = SICDIN30.My.Resources.floruser
+                                    Case "Carro"
+                                        .BackgroundImage = SICDIN30.My.Resources.carrouser
+                                    Case "Bicicleta"
+                                        .BackgroundImage = SICDIN30.My.Resources.bicicleta
+                                    Case Else
+                                        Dim fotoPath As String = rdr("Foto").ToString()
+                                        If System.IO.File.Exists(fotoPath) Then
+                                            Try
+                                                Dim imagen As Image = Image.FromFile(fotoPath)
+                                                .BackgroundImage = imagen
+                                            Catch
+                                                .BackgroundImage = SICDIN30.My.Resources.hombre
+                                            End Try
+                                        Else
+                                            .BackgroundImage = SICDIN30.My.Resources.hombre
+                                        End If
+                                End Select
+                                .BackgroundImageLayout = ImageLayout.Zoom
+                                .Text = rdr("Nombre").ToString()
+                                .Tag = rdr("Id")
+                                panelusu.Controls.Add(botonuser(i))
+                                .Dock = DockStyle.Left
+                                .FlatStyle = FlatStyle.Flat
+                                .BringToFront()
 
-        Dim st As String = "SELECT Id,Nombre,pass,Foto FROM Usuario WHERE Activo=TRUE ORDER BY FU DESC"
-        If firttime Then
-            conusu.Open()
-        End If
+                                widhttotal += .Width
+                            End With
 
-        Dim orden As OleDb.OleDbCommand = New OleDb.OleDbCommand(st, conusu)
-        Dim lector As OleDb.OleDbDataReader = orden.ExecuteReader
-        Dim i As Integer = 0
-        activeusera = New usuario
-
-        While lector.Read
-            ReDim Preserve botonuser(i)
-            botonuser(i) = New Button
-
-            With botonuser(i)
-                .TextAlign = ContentAlignment.BottomCenter
-                Select Case lector("Foto")
-                    Case "Hombre"
-                        .BackgroundImage = SICDIN30.My.Resources.hombre
-                    Case "Mujer"
-                        .BackgroundImage = SICDIN30.My.Resources.mujeruser
-
-                    Case "Flor"
-                        .BackgroundImage = SICDIN30.My.Resources.floruser
-
-                    Case "Carro"
-                        .BackgroundImage = SICDIN30.My.Resources.carrouser
-
-                    Case "Bicicleta"
-                        .BackgroundImage = SICDIN30.My.Resources.bicicleta
-
-                    Case Else
-                        If System.IO.File.Exists(lector("Foto")) Then
-                            Dim imagen As Image = Image.FromFile(lector("foto"))
-
-                            .BackgroundImage = imagen
-                        Else
-
-                            .BackgroundImage = SICDIN30.My.Resources.hombre
-                        End If
-                End Select
-                .BackgroundImageLayout = ImageLayout.Zoom
-                .Text = lector("Nombre")
-                .Tag = lector("Id")
-                panelusu.Controls.Add(botonuser(i))
-                .Dock = DockStyle.Left
-                .FlatStyle = FlatStyle.Flat
-                .BringToFront()
-
-                widhttotal += .Width
-
-            End With
-
-            AddHandler botonuser(i).Click, AddressOf clickbutton
-            i += 1
-
-        End While
-        lector.Close()
-        Panelleft.Width = (Me.Width - widhttotal - 40) / 2
-        Panelri.Width = (Me.Width - widhttotal - 40) / 2
+                            AddHandler botonuser(i).Click, AddressOf clickbutton
+                            i += 1
+                        End While
+                    End Using
+                End Using
+            End SyncLock
+            Panelleft.Width = (Me.Width - widhttotal - 40) / 2
+            Panelri.Width = (Me.Width - widhttotal - 40) / 2
 
         Fechalabel.Text = Now.ToShortDateString
 
@@ -136,7 +139,9 @@ Public Class session
                 imagen.BackgroundImage = SICDIN30.My.Resources.Resources.navidad
 
         End Select
-
+        Catch ex As Exception
+            LogAppError(ex, "session.loadusers")
+        End Try
     End Sub
     Private Sub session_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         loadusers()

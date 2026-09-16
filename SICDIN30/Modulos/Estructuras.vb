@@ -64,60 +64,82 @@ Public Module Estructuras
 
         End Function
         Public Sub saveme()
-            Dim hilo As Thread = New Thread(New ThreadStart(AddressOf savemethread))
-            hilo.Start()
-
-
+            Try
+                Dim hilo As Thread = New Thread(New ThreadStart(AddressOf savemethread))
+                hilo.IsBackground = True
+                hilo.Start()
+            Catch ex As Exception
+                LogAppError(ex, "Estructuras.saveme")
+            End Try
         End Sub
         Public Sub savemethread()
-            If Not listmod Then
-                Exit Sub
-            End If
-
-            If fotos.Count > 1 Then
-                Dim stdirsys As String = pathimage & claveart & "-dummy"
-                If Not My.Computer.FileSystem.DirectoryExists(stdirsys) Then
-                    My.Computer.FileSystem.CreateDirectory(stdirsys)
+            Try
+                If Not listmod Then
+                    Exit Sub
                 End If
 
-                For i = 0 To fotos.Count - 1
-                    Dim pathimag As String = stdirsys & "\" & claveart & "(" & i + 1 & ")" & ".jpg"
-                    If fotos(i) IsNot Nothing Then
-                        fotos(i).Save(pathimag, Imaging.ImageFormat.Jpeg)
+                If fotos IsNot Nothing AndAlso fotos.Count > 1 Then
+                    Dim stdirsys As String = pathimage & claveart & "-dummy"
+                    If Not My.Computer.FileSystem.DirectoryExists(stdirsys) Then
+                        My.Computer.FileSystem.CreateDirectory(stdirsys)
                     End If
-                    fotos(i).Dispose()
-                Next
-                If My.Computer.FileSystem.DirectoryExists(pathimage & claveart) Then
-                    Dim files() As String = IO.Directory.GetFiles(pathimage & claveart)
-                    For Each file As String In files
-                        My.Computer.FileSystem.DeleteFile(file, FileIO.UIOption.OnlyErrorDialogs, FileIO.RecycleOption.DeletePermanently)
-                    Next
-                End If
-                If My.Computer.FileSystem.FileExists(pathimage & claveart & ".jpg") Then
-                    My.Computer.FileSystem.DeleteFile(pathimage & claveart & ".jpg", FileIO.UIOption.OnlyErrorDialogs, FileIO.RecycleOption.DeletePermanently)
-                End If
-                My.Computer.FileSystem.RenameDirectory(stdirsys, claveart)
 
-            Else
-                If fotos(0) IsNot Nothing Then
-                    fotos(0).Save(pathimage & claveart & "-dummy" & ".jpg", Imaging.ImageFormat.Jpeg)
-                    fotos(0).Dispose()
-                End If
-
-                If My.Computer.FileSystem.FileExists(pathimage & claveart & ".jpg") Then
-                    My.Computer.FileSystem.DeleteFile(pathimage & claveart & ".jpg", FileIO.UIOption.OnlyErrorDialogs, FileIO.RecycleOption.DeletePermanently)
-                End If
-                If fotos(0) IsNot Nothing Then
-                    My.Computer.FileSystem.RenameFile(pathimage & claveart & "-dummy" & ".jpg", claveart & ".jpg")
-                End If
-                If My.Computer.FileSystem.DirectoryExists(pathimage & claveart) Then
-                    Dim files() As String = IO.Directory.GetFiles(pathimage & claveart)
-                    For Each file As String In files
-                        My.Computer.FileSystem.DeleteFile(file, FileIO.UIOption.OnlyErrorDialogs, FileIO.RecycleOption.DeletePermanently)
+                    For i = 0 To fotos.Count - 1
+                        Dim pathimag As String = stdirsys & "\" & claveart & "(" & i + 1 & ")" & ".jpg"
+                        If fotos(i) IsNot Nothing Then
+                            fotos(i).Save(pathimag, Imaging.ImageFormat.Jpeg)
+                            fotos(i).Dispose()
+                        End If
                     Next
-                    My.Computer.FileSystem.DeleteDirectory(pathimage & claveart, FileIO.DeleteDirectoryOption.DeleteAllContents)
+                    If My.Computer.FileSystem.DirectoryExists(pathimage & claveart) Then
+                        Dim files() As String = IO.Directory.GetFiles(pathimage & claveart)
+                        For Each file As String In files
+                            Try
+                                My.Computer.FileSystem.DeleteFile(file, FileIO.UIOption.OnlyErrorDialogs, FileIO.RecycleOption.DeletePermanently)
+                            Catch
+                            End Try
+                        Next
+                    End If
+                    If My.Computer.FileSystem.FileExists(pathimage & claveart & ".jpg") Then
+                        Try
+                            My.Computer.FileSystem.DeleteFile(pathimage & claveart & ".jpg", FileIO.UIOption.OnlyErrorDialogs, FileIO.RecycleOption.DeletePermanently)
+                        Catch
+                        End Try
+                    End If
+                    My.Computer.FileSystem.RenameDirectory(stdirsys, claveart)
+
+                ElseIf fotos IsNot Nothing AndAlso fotos.Count > 0 Then
+                    If fotos(0) IsNot Nothing Then
+                        fotos(0).Save(pathimage & claveart & "-dummy" & ".jpg", Imaging.ImageFormat.Jpeg)
+                        fotos(0).Dispose()
+                    End If
+
+                    If My.Computer.FileSystem.FileExists(pathimage & claveart & ".jpg") Then
+                        Try
+                            My.Computer.FileSystem.DeleteFile(pathimage & claveart & ".jpg", FileIO.UIOption.OnlyErrorDialogs, FileIO.RecycleOption.DeletePermanently)
+                        Catch
+                        End Try
+                    End If
+                    If fotos(0) IsNot Nothing AndAlso My.Computer.FileSystem.FileExists(pathimage & claveart & "-dummy" & ".jpg") Then
+                        My.Computer.FileSystem.RenameFile(pathimage & claveart & "-dummy" & ".jpg", claveart & ".jpg")
+                    End If
+                    If My.Computer.FileSystem.DirectoryExists(pathimage & claveart) Then
+                        Dim files() As String = IO.Directory.GetFiles(pathimage & claveart)
+                        For Each file As String In files
+                            Try
+                                My.Computer.FileSystem.DeleteFile(file, FileIO.UIOption.OnlyErrorDialogs, FileIO.RecycleOption.DeletePermanently)
+                            Catch
+                            End Try
+                        Next
+                        Try
+                            My.Computer.FileSystem.DeleteDirectory(pathimage & claveart, FileIO.DeleteDirectoryOption.DeleteAllContents)
+                        Catch
+                        End Try
+                    End If
                 End If
-            End If
+            Catch ex As Exception
+                LogAppError(ex, "Estructuras.savemethread")
+            End Try
         End Sub
         Public Sub New()
             ReDim fotos(0)
@@ -443,25 +465,63 @@ Public Module Estructuras
             End If
         End Sub
         Private Sub setnotifycambio()
-            notifystartblink()
-            bcambio = True
-            ncp.Visible = True
-            Dim st As String = "UPDATE Notification SET Fechanot='" & onlyfechasql(Now) & "' WHERE Tipo=1"
-            Dim orden As OleDb.OleDbCommand = New OleDbCommand(st, consys)
-            orden.ExecuteNonQuery()
-            campreciofecha = Now
+            Try
+                Dim st As String = "UPDATE Notification SET Fechanot='" & onlyfechasql(Now) & "' WHERE Tipo=1"
+                SyncLock consys
+                    Using cmd As New OleDbCommand(st, consys)
+                        cmd.ExecuteNonQuery()
+                    End Using
+                End SyncLock
+                campreciofecha = Now
+                bcambio = True
+                Try
+                    If main IsNot Nothing Then
+                        If main.InvokeRequired Then
+                            main.BeginInvoke(Sub()
+                                                notifystartblink()
+                                                If ncp IsNot Nothing Then ncp.Visible = True
+                                             End Sub)
+                        Else
+                            notifystartblink()
+                            If ncp IsNot Nothing Then ncp.Visible = True
+                        End If
+                    End If
+                Catch
+                End Try
+            Catch ex As Exception
+                LogAppError(ex, "notifier.setnotifycambio")
+            End Try
         End Sub
         Public Sub cambiodeexistencias(clave As String)
-            Dim art As articuloventa = New articuloventa
-            art.load(clave, True)
-            If art.existencias < art.stock And art.stock > 0 Then
-                notifystartblink()
-                Dim st As String = "UPDATE Notification SET Fechanot='" & onlyfechasql(Now) & "' WHERE Tipo=2"
-                Dim orden As OleDb.OleDbCommand = New OleDbCommand(st, consys)
-                orden.ExecuteNonQuery()
-                bext = True
-                nsa.Visible = True
-            End If
+            Try
+                Dim art As articuloventa = New articuloventa
+                art.load(clave, True)
+                If art.existencias < art.stock And art.stock > 0 Then
+                    Dim st As String = "UPDATE Notification SET Fechanot='" & onlyfechasql(Now) & "' WHERE Tipo=2"
+                    SyncLock consys
+                        Using cmd As New OleDbCommand(st, consys)
+                            cmd.ExecuteNonQuery()
+                        End Using
+                    End SyncLock
+                    bext = True
+                    Try
+                        If main IsNot Nothing Then
+                            If main.InvokeRequired Then
+                                main.BeginInvoke(Sub()
+                                                    notifystartblink()
+                                                    If nsa IsNot Nothing Then nsa.Visible = True
+                                                 End Sub)
+                            Else
+                                notifystartblink()
+                                If nsa IsNot Nothing Then nsa.Visible = True
+                            End If
+                        End If
+                    Catch
+                    End Try
+                End If
+            Catch ex As Exception
+                LogAppError(ex, "notifier.cambiodeexistencias")
+            End Try
         End Sub
 
     End Class
@@ -1493,94 +1553,119 @@ Public Module Estructuras
 
         Public Sub altaart(Optional canta As Decimal = 0)
             existencias = canta
-
-            Dim hilo As Thread = New Thread(New ThreadStart(AddressOf altathread))
-            hilo.Start()
-
-
+            Try
+                Dim hilo As Thread = New Thread(New ThreadStart(AddressOf altathread))
+                hilo.IsBackground = True
+                hilo.Start()
+            Catch ex As Exception
+                LogAppError(ex, "Estructuras.altaart")
+            End Try
         End Sub
         Public Sub altathread()
-            Dim orden As OleDb.OleDbCommand
-            Dim st As String = "INSERT INTO Articulos (Clave,Cbarra,Descripción,Precio,Mayoreo,Menudeo,Especial,PME,Paquete,Existencias,ea1,ea2,stock,Tipo,Einf,PGmen,PGmay,Tags,Fum,Fuc,usuariofum) VALUES ('"
-            st &= clave & sep
-            st &= cbarra & sep
-            st &= descripcion & "',"
-            st &= precio & ","
-            st &= mayoreo & ","
-            st &= menudeo & ","
-            st &= especial & ","
-            st &= pme & ",'"
-            st &= pq & "',"
-            st &= existencias & ","
-            st &= ea1 & ","
-            st &= ea2 & ","
-            st &= stock & ",'"
-            st &= tipo & "',"
-            st &= einf & ","
-            st &= pgmen & ","
-            st &= pgmay & ",'"
-            st &= tag & sep
-            st &= fum & sep
-            st &= fuc & sep
-            st &= user.idnameusu & "')"
-            orden = New OleDb.OleDbCommand(st, conart)
-            orden.ExecuteNonQuery()
             Try
-                autocompletarart()
-                notifier.cambiodeexistencias(clave)
-                nube.QueueArticuloDelta(Me, "UPSERT")
+                Dim st As String = "INSERT INTO Articulos (Clave,Cbarra,Descripción,Precio,Mayoreo,Menudeo,Especial,PME,Paquete,Existencias,ea1,ea2,stock,Tipo,Einf,PGmen,PGmay,Tags,Fum,Fuc,usuariofum) VALUES ('"
+                st &= sqlSafe(clave) & sep
+                st &= sqlSafe(cbarra) & sep
+                st &= sqlSafe(descripcion) & "',"
+                st &= precio & ","
+                st &= mayoreo & ","
+                st &= menudeo & ","
+                st &= especial & ","
+                st &= pme & ",'"
+                st &= sqlSafe(pq) & "',"
+                st &= existencias & ","
+                st &= ea1 & ","
+                st &= ea2 & ","
+                st &= stock & ",'"
+                st &= sqlSafe(tipo) & "',"
+                st &= einf & ","
+                st &= pgmen & ","
+                st &= pgmay & ",'"
+                st &= sqlSafe(tag) & sep
+                st &= fum & sep
+                st &= fuc & sep
+                st &= sqlSafe(user.idnameusu) & "')"
+                SyncLock conart
+                    Using cmd As New OleDb.OleDbCommand(st, conart)
+                        cmd.ExecuteNonQuery()
+                    End Using
+                End SyncLock
+                Try
+                    autocompletarart()
+                    notifier.cambiodeexistencias(clave)
+                    nube.QueueArticuloDelta(Me, "UPSERT")
+                Catch ex As Exception
+                    nube.SyncLog("Error al encolar alta de artículo: " & ex.Message, True)
+                End Try
             Catch ex As Exception
-                nube.SyncLog("Error al encolar alta de artículo: " & ex.Message, True)
+                LogAppError(ex, "Estructuras.altathread")
             End Try
         End Sub
         Public Sub setexistencias(cantidad As Decimal)
-            Dim st As String = "UPDATE Articulos SET Existencias=" & cantidad & " WHERE Clave='" & clave & "'"
-            orden = New OleDb.OleDbCommand(st, conart)
-            orden.ExecuteNonQuery()
-
+            Try
+                Dim st As String = "UPDATE Articulos SET Existencias=" & cantidad & " WHERE Clave='" & sqlSafe(clave) & "'"
+                SyncLock conart
+                    Using cmd As New OleDb.OleDbCommand(st, conart)
+                        cmd.ExecuteNonQuery()
+                    End Using
+                End SyncLock
+            Catch ex As Exception
+                LogAppError(ex, "Estructuras.setexistencias")
+            End Try
         End Sub
         Public Sub updateart(Optional uexis As Boolean = False, Optional cant As Decimal = 0)
             upexis = uexis
             cantidad = cant
-            Dim hilo As Thread = New Thread(New ThreadStart(AddressOf updateartthread))
-            hilo.Start()
+            Try
+                Dim hilo As Thread = New Thread(New ThreadStart(AddressOf updateartthread))
+                hilo.IsBackground = True
+                hilo.Start()
+            Catch ex As Exception
+                LogAppError(ex, "Estructuras.updateart")
+            End Try
         End Sub
         Public Sub updateartthread()
-            Dim orden As OleDb.OleDbCommand
-            Dim sep2 As String = "', "
-            Dim st As String = "UPDATE Articulos SET "
-            st &= "Descripción='" & descripcion & sep2
-            st &= "Menudeo=" & menudeo & ","
-            st &= "Mayoreo=" & mayoreo & ","
-            st &= "Precio=" & precio & ","
-            st &= "PME=" & pme & ","
-            st &= "Especial=" & especial & ","
-            st &= "stock=" & stock & ","
-            st &= "paquete='" & pq & sep2
-            st &= "cbarra='" & cbarra & sep2
-            st &= "Notas='" & notas & sep2
-            st &= "Tags='" & tag & sep2
-            st &= "fum='" & fum & sep2
-            st &= "usuariofum='" & user.idnameusu & sep2
-            st &= "tipo='" & tipo & "',"
-            st &= "einf=" & einf
-            st &= " WHERE clave='" & clave & "'"
-            orden = New OleDb.OleDbCommand(st, conart)
-            orden.ExecuteNonQuery()
-            If clave = "LL26PA" Then
-                st = "INSERT INTO Lognube(Fecha,Descripción,Usuario) VALUES ('" & nowsql() & "','Modificacion','" & user.idnameusu & "')"
-                orden = New OleDb.OleDbCommand(st, conart)
-                orden.ExecuteNonQuery()
+            Try
+                Dim sep2 As String = "', "
+                Dim st As String = "UPDATE Articulos SET "
+                st &= "Descripción='" & sqlSafe(descripcion) & sep2
+                st &= "Menudeo=" & menudeo & ","
+                st &= "Mayoreo=" & mayoreo & ","
+                st &= "Precio=" & precio & ","
+                st &= "PME=" & pme & ","
+                st &= "Especial=" & especial & ","
+                st &= "stock=" & stock & ","
+                st &= "paquete='" & sqlSafe(pq) & sep2
+                st &= "cbarra='" & sqlSafe(cbarra) & sep2
+                st &= "Notas='" & sqlSafe(notas) & sep2
+                st &= "Tags='" & sqlSafe(tag) & sep2
+                st &= "fum='" & fum & sep2
+                st &= "usuariofum='" & sqlSafe(user.idnameusu) & sep2
+                st &= "tipo='" & sqlSafe(tipo) & "',"
+                st &= "einf=" & einf
+                st &= " WHERE clave='" & sqlSafe(clave) & "'"
+                SyncLock conart
+                    Using cmd As New OleDb.OleDbCommand(st, conart)
+                        cmd.ExecuteNonQuery()
+                    End Using
+                End SyncLock
+                If clave = "LL26PA" Then
+                    Dim stLog As String = "INSERT INTO Lognube(Fecha,Descripción,Usuario) VALUES ('" & nowsql() & "','Modificacion','" & sqlSafe(user.idnameusu) & "')"
+                    SyncLock conart
+                        Using cmdLog As New OleDb.OleDbCommand(stLog, conart)
+                            cmdLog.ExecuteNonQuery()
+                        End Using
+                    End SyncLock
+                End If
+                updateincloud(st)
+                If upexis Then
+                    setexistencias(cantidad)
+                End If
 
-            End If
-            updateincloud(st)
-            If upexis Then
-                setexistencias(cantidad)
-            End If
-
-            notifier.cambiodeexistencias(clave)
-
-
+                notifier.cambiodeexistencias(clave)
+            Catch ex As Exception
+                LogAppError(ex, "Estructuras.updateartthread")
+            End Try
         End Sub
         Private Sub updateincloud(st As String)
             Try
@@ -1590,59 +1675,76 @@ Public Module Estructuras
             End Try
         End Sub
         Public Sub deleteme(Optional ask As Boolean = True)
-
             If ask Then
                 If dialogs.pregunta("¿Desea eliminar el siguiente artículo?" & vbNewLine & "Clave:" & clave & vbNewLine & "Descripción:" & descripcion) = DialogResult.No Then
                     Exit Sub
                 End If
             End If
-            Dim hilo As Thread = New Thread(New ThreadStart(AddressOf deletemetrhead))
-            hilo.Start()
-
+            Try
+                Dim hilo As Thread = New Thread(New ThreadStart(AddressOf deletemetrhead))
+                hilo.IsBackground = True
+                hilo.Start()
+            Catch ex As Exception
+                LogAppError(ex, "Estructuras.deleteme")
+            End Try
         End Sub
 
         Public Sub deletemetrhead()
-            Dim orden As OleDb.OleDbCommand
-            'Dim st As String = "DELETE FROM Articulos WHERE Clave='" & clave & "'"
-            Dim st As String = "UPDATE Articulos SET Del=TRUE, Fechadel='" & fechasql(Now) & "' WHERE  Clave='" & clave & "'"
-            orden = New OleDb.OleDbCommand(st, conart)
             Try
-                nube.QueueArticuloDelta(Me, "DELETE")
+                Dim st As String = "UPDATE Articulos SET Del=TRUE, Fechadel='" & fechasql(Now) & "' WHERE  Clave='" & sqlSafe(clave) & "'"
+                SyncLock conart
+                    Using cmd As New OleDb.OleDbCommand(st, conart)
+                        cmd.ExecuteNonQuery()
+                    End Using
+                End SyncLock
+                Try
+                    nube.QueueArticuloDelta(Me, "DELETE")
+                Catch ex As Exception
+                    nube.SyncLog("Error al encolar eliminación de artículo: " & ex.Message, True)
+                End Try
+                If System.IO.File.Exists(pathimage & clave & ".jpg") Then
+                    Try
+                        System.IO.File.Delete(pathimage & clave & ".jpg")
+                    Catch
+                    End Try
+                End If
+                If System.IO.Directory.Exists(pathimage & clave) Then
+                    Try
+                        System.IO.Directory.Delete(pathimage & clave, True)
+                    Catch
+                    End Try
+                End If
             Catch ex As Exception
-                nube.SyncLog("Error al encolar eliminación de artículo: " & ex.Message, True)
+                LogAppError(ex, "Estructuras.deletemetrhead")
             End Try
-            If System.IO.File.Exists(pathimage & clave & ".jpg") Then
-                System.IO.File.Delete(pathimage & clave & ".jpg")
-            End If
-            If System.IO.Directory.Exists(pathimage & clave) Then
-                System.IO.Directory.Delete(pathimage & clave, True)
-            End If
-            'If updatecloud Then
-            '    delartdummy(clave)
-            'End If
-
         End Sub
         Private Sub modexistenciasthread()
-            If tipo = "Trabajo" Or einf Then
-                Exit Sub
-            End If
-            Dim st As String = "UPDATE Articulos SET Existencias=" & existencias & ", FUC='" & Now & "' WHERE clave='" & clave & "'"
+            Try
+                If tipo = "Trabajo" Or einf Then
+                    Exit Sub
+                End If
+                Dim st As String = "UPDATE Articulos SET Existencias=" & existencias & ", FUC='" & Now & "' WHERE clave='" & sqlSafe(clave) & "'"
 
+                SyncLock conart
+                    Using cmd As New OleDbCommand(st, conart)
+                        cmd.ExecuteNonQuery()
+                    End Using
+                End SyncLock
 
-            Dim orden As OleDbCommand = New OleDbCommand(st, conart)
-            orden.ExecuteNonQuery()
-            'insertcantintodummy(clave)
-            If clave = "LL26PA" Then
-                st = "INSERT INTO Lognube(Fecha,Descripción,Usuario) VALUES ('" & nowsql() & "','Modificacion','" & user.idnameusu & "')"
-                orden = New OleDb.OleDbCommand(st, consys)
-                orden.ExecuteNonQuery()
-
-            End If
-            notifier.cambiodeexistencias(clave)
-
+                If clave = "LL26PA" Then
+                    Dim stLog As String = "INSERT INTO Lognube(Fecha,Descripción,Usuario) VALUES ('" & nowsql() & "','Modificacion','" & sqlSafe(user.idnameusu) & "')"
+                    SyncLock consys
+                        Using cmdLog As New OleDb.OleDbCommand(stLog, consys)
+                            cmdLog.ExecuteNonQuery()
+                        End Using
+                    End SyncLock
+                End If
+                notifier.cambiodeexistencias(clave)
+            Catch ex As Exception
+                LogAppError(ex, "Estructuras.modexistenciasthread")
+            End Try
         End Sub
         Public Sub modexistencias(Optional cant As Decimal = 0, Optional add As Boolean = True)
-
             If add Then
                 existencias += cant
             Else
@@ -1651,8 +1753,13 @@ Public Module Estructuras
             If existencias < 0 Then
                 existencias = 0
             End If
-            Dim hilo As Thread = New Thread(New ThreadStart(AddressOf modexistenciasthread))
-            hilo.Start()
+            Try
+                Dim hilo As Thread = New Thread(New ThreadStart(AddressOf modexistenciasthread))
+                hilo.IsBackground = True
+                hilo.Start()
+            Catch ex As Exception
+                LogAppError(ex, "Estructuras.modexistencias")
+            End Try
         End Sub
     End Class
     Public Class dgventa : Implements IDisposable
@@ -2403,107 +2510,150 @@ Public Module Estructuras
             pagoadeudo = False
         End Sub
         Public Sub addartsdbthread()
-            Dim st As String
-            Dim orden As OleDbCommand
-            Dim i As Integer
-            Dim tra As trabajador = New trabajador
-            For i = 0 To articulos.articulo.Count - 1
-                With articulos.articulo(i)
-                    If articulos.articulo(i).clave <> "" Then
-                        If .tipo = "Trabajo" Then
-                            If tra.id = 0 Then
-                                tra = trabajadorsel.loader()
+            Try
+                Dim st As String
+                Dim tra As trabajador = New trabajador
+                For i As Integer = 0 To articulos.articulo.Count - 1
+                    With articulos.articulo(i)
+                        If articulos.articulo(i).clave <> "" Then
+                            If .tipo = "Trabajo" Then
+                                If tra.id = 0 Then
+                                    Try
+                                        If main IsNot Nothing AndAlso main.InvokeRequired Then
+                                            main.Invoke(Sub()
+                                                            tra = trabajadorsel.loader()
+                                                        End Sub)
+                                        Else
+                                            tra = trabajadorsel.loader()
+                                        End If
+                                    Catch
+                                        tra = New trabajador()
+                                    End Try
+                                End If
+                                st = "INSERT INTO trabajos (Fecha,Hora,Folio,Clave,Descripcion,Importe,Cantidad,Realizo) Values ('"
+                                st &= fechasql(Today) & "','"
+                                st &= fechasql(Now) & "','"
+                                st &= sqlSafe(folio) & "','"
+                                st &= sqlSafe(.clave) & "','"
+                                st &= sqlSafe(.descripcion) & "',"
+                                st &= .importe & ","
+                                st &= .cantidad & ","
+                                st &= tra.id & ")"
+                                SyncLock contra
+                                    Using cmd As New OleDbCommand(st, contra)
+                                        cmd.ExecuteNonQuery()
+                                    End Using
+                                End SyncLock
                             End If
-                            st = "INSERT INTO trabajos (Fecha,Hora,Folio,Clave,Descripcion,Importe,Cantidad,Realizo) Values ('"
-                            st &= fechasql(Today) & "','"
-                            st &= fechasql(Now) & "','"
-                            st &= folio & "','"
-                            st &= .clave & "','"
-                            st &= .descripcion & "',"
-                            st &= .importe & ","
-                            st &= .cantidad & ","
-                            st &= tra.id & ")"
-                            orden = New OleDbCommand(st, contra)
-                            orden.ExecuteNonQuery()
                         End If
-                    End If
-                End With
-            Next
-            For i = 0 To articulos.articulo.Count - 1
-                With articulos.articulo(i)
-                    If articulos.articulo(i).clave <> "" Then
-                        st = "INSERT INTO Articulos (Folio,Clave,Descripción,Tp,Cantidad,Importe,Paquete) VALUES ('"
-                        st &= folio & sep
-                        st &= articulos.articulo(i).clave & sep
-                        st &= articulos.articulo(i).descripcion & sep
-                        st &= articulos.articulo(i).tp & sep
-                        st &= articulos.articulo(i).cantidad & sep
-                        st &= articulos.articulo(i).importe & "','"
-                        st &= articulos.articulo(i).pq & "')"
-                        orden = New OleDb.OleDbCommand(st, convent)
-                        orden.ExecuteNonQuery()
-                        If updateexis Then
+                    End With
+                Next
+                For i As Integer = 0 To articulos.articulo.Count - 1
+                    With articulos.articulo(i)
+                        If articulos.articulo(i).clave <> "" Then
+                            st = "INSERT INTO Articulos (Folio,Clave,Descripción,Tp,Cantidad,Importe,Paquete) VALUES ('"
+                            st &= sqlSafe(folio) & sep
+                            st &= sqlSafe(articulos.articulo(i).clave) & sep
+                            st &= sqlSafe(articulos.articulo(i).descripcion) & sep
+                            st &= sqlSafe(articulos.articulo(i).tp) & sep
+                            st &= articulos.articulo(i).cantidad & sep
+                            st &= articulos.articulo(i).importe & "','"
+                            st &= sqlSafe(articulos.articulo(i).pq) & "')"
+                            SyncLock convent
+                                Using cmd As New OleDb.OleDbCommand(st, convent)
+                                    cmd.ExecuteNonQuery()
+                                End Using
+                            End SyncLock
+                            If updateexis Then
+                                .modexistencias(.cantidad, False)
+                                updatelastventa(articulos.articulo(i).clave)
+                            End If
 
-                            .modexistencias(.cantidad, False)
-                            updatelastventa(articulos.articulo(i).clave)
                         End If
-
-                    End If
-                End With
-            Next
-            If Not apartado Then
-                addventalv()
-            End If
-
+                    End With
+                Next
+                If Not apartado Then
+                    addventalv()
+                End If
+            Catch ex As Exception
+                LogAppError(ex, "Estructuras.addartsdbthread")
+            End Try
         End Sub
         Public Sub addartsdb()
-            Dim hilo As Thread = New Thread(New ThreadStart(AddressOf addartsdbthread))
-            hilo.Start()
+            Try
+                Dim hilo As Thread = New Thread(New ThreadStart(AddressOf addartsdbthread))
+                hilo.IsBackground = True
+                hilo.Start()
+            Catch ex As Exception
+                LogAppError(ex, "Estructuras.addartsdb")
+            End Try
         End Sub
         Public Sub addventarapidathread()
-            Dim st As String = "INSERT INTO lv (Descripcion,Cantidad,Cliente,Total,hora,horast,fecha,clave,Usuario,Pagoefe,Pagotrans,Pagotar,Descuento,pagado) VALUES ('"
-            With articulos.articulo(0)
-                st &= .descripcion & "',"
-                st &= .cantidad & ",'"
-                st &= clnt.idname & "',"
-                st &= total & ",'"
-                st &= horasql(Now) & sep
-                st &= horasql(Now) & sep
-                st &= onlyfechasql(Now) & sep
-                st &= .clave & sep
-                st &= user.idnameusu & "',"
-                st &= pago.efectivo & ","
-                st &= pago.transferencia & ","
-                st &= pago.tarjeta & ","
-                st &= pago.descuento & ","
-                st &= pago.pagado & ""
-                st &= ")"
-                Dim orden As OleDb.OleDbCommand = New OleDb.OleDbCommand(st, convent)
-                orden.ExecuteNonQuery()
-                'redexistencias(.clave, .cantidad, False)
-                .modexistencias(.cantidad, False)
-                If .tipo = "Trabajo" Then
-                    Dim tra As trabajador = New trabajador
-                    tra = trabajadorsel.loader()
-                    st = "INSERT INTO trabajos (Fecha,Hora,Folio,Clave,Descripcion,Importe,Cantidad,Realizo) Values ('"
-                    st &= fechasql(Today) & "','"
-                    st &= fechasql(Now) & "','"
-                    st &= "V.Rapida" & "','"
-                    st &= .clave & "','"
-                    st &= .descripcion & "',"
-                    st &= .menudeo & ","
-                    st &= .cantidad & ","
-                    st &= tra.id & ")"
-                    orden = New OleDbCommand(st, contra)
-                    orden.ExecuteNonQuery()
-
-                End If
-            End With
+            Try
+                Dim st As String = "INSERT INTO lv (Descripcion,Cantidad,Cliente,Total,hora,horast,fecha,clave,Usuario,Pagoefe,Pagotrans,Pagotar,Descuento,pagado) VALUES ('"
+                With articulos.articulo(0)
+                    st &= sqlSafe(.descripcion) & "',"
+                    st &= .cantidad & ",'"
+                    st &= sqlSafe(clnt.idname) & "',"
+                    st &= total & ",'"
+                    st &= horasql(Now) & sep
+                    st &= horasql(Now) & sep
+                    st &= onlyfechasql(Now) & sep
+                    st &= sqlSafe(.clave) & sep
+                    st &= sqlSafe(user.idnameusu) & "',"
+                    st &= pago.efectivo & ","
+                    st &= pago.transferencia & ","
+                    st &= pago.tarjeta & ","
+                    st &= pago.descuento & ","
+                    st &= pago.pagado & ""
+                    st &= ")"
+                    SyncLock convent
+                        Using cmd As New OleDb.OleDbCommand(st, convent)
+                            cmd.ExecuteNonQuery()
+                        End Using
+                    End SyncLock
+                    .modexistencias(.cantidad, False)
+                    If .tipo = "Trabajo" Then
+                        Dim tra As trabajador = New trabajador
+                        Try
+                            If main IsNot Nothing AndAlso main.InvokeRequired Then
+                                main.Invoke(Sub()
+                                                tra = trabajadorsel.loader()
+                                            End Sub)
+                            Else
+                                tra = trabajadorsel.loader()
+                            End If
+                        Catch
+                            tra = New trabajador()
+                        End Try
+                        st = "INSERT INTO trabajos (Fecha,Hora,Folio,Clave,Descripcion,Importe,Cantidad,Realizo) Values ('"
+                        st &= fechasql(Today) & "','"
+                        st &= fechasql(Now) & "','"
+                        st &= "V.Rapida" & "','"
+                        st &= sqlSafe(.clave) & "','"
+                        st &= sqlSafe(.descripcion) & "',"
+                        st &= .menudeo & ","
+                        st &= .cantidad & ","
+                        st &= tra.id & ")"
+                        SyncLock contra
+                            Using cmd As New OleDbCommand(st, contra)
+                                cmd.ExecuteNonQuery()
+                            End Using
+                        End SyncLock
+                    End If
+                End With
+            Catch ex As Exception
+                LogAppError(ex, "Estructuras.addventarapidathread")
+            End Try
         End Sub
         Public Sub addventarapida()
-            Dim hilo As Thread = New Thread(New ThreadStart(AddressOf addventarapidathread))
-            hilo.Start()
-
+            Try
+                Dim hilo As Thread = New Thread(New ThreadStart(AddressOf addventarapidathread))
+                hilo.IsBackground = True
+                hilo.Start()
+            Catch ex As Exception
+                LogAppError(ex, "Estructuras.addventarapida")
+            End Try
         End Sub
         Public Sub addventa()
             If pago.pagado > pago.total Then

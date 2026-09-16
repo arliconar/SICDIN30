@@ -1,4 +1,4 @@
-﻿Imports System.Net.Sockets
+Imports System.Net.Sockets
 Imports System.Net
 Imports System.Threading
 Module connexion
@@ -23,122 +23,133 @@ Module connexion
         Dim stoplistener As Boolean
         Dim server As TcpListener
         Private Function inter(st As String) As Boolean ''interprete de funciones
-            Dim stplit() As String = st.Split("|") ''separamos
-            If stplit(stplit.Count - 1) <> "FIN" Then
-                inter = False
-                Exit Function
-            End If
-            Dim sttien As String = stplit(0)
-            Dim stbase As String = stplit(1) 'que base
-            Dim storden As String = stplit(2) 'que orden
-            Dim stdata As String = ""
-            Select Case stbase
-                Case "ART"
-                    Select Case storden
-                        Case "MOD"
-                            stdata = "UPDATE Articulos SET " & stplit(3) & "=" & stplit(4) & " WHERE Clave='" & stplit(5) & "'"
-                        Case "DEL"
-                            stdata = "DELETE FROM Articulos WHERE Clave='" & stplit(3) & "'"
-                        Case "NOM"
-                            Dim art As articuloventa = New articuloventa(stplit(3))
-                            If art.found Then
-                                stdata = "UPDATE Articulos SET Descripción='" & stplit(4) & "', "
-                                stdata &= "Menudeo=" & stplit(5) & ", "
-                                stdata &= "Mayoreo=" & stplit(6) & ", "
-                                stdata &= "PME=" & stplit(7) & ", "
-                                stdata &= "Especial=" & stplit(8) & ", "
-                                stdata &= "Precio=" & stplit(9) & ", "
-                                stdata &= "PGmen=" & stplit(10) & ", "
-                                stdata &= "PGmay=" & stplit(11) & ", "
-                                stdata &= "FUM='" & stplit(12) & "', "
-                                stdata &= "Paquete='" & stplit(13) & "', "
-                                stdata &= "cbarra='" & stplit(14) & "', "
-                                If stplit(15) = "Articulos" Then
-                                    stdata &= "Tipo='" & "Artículos" & "', "
-                                Else
-                                    stdata &= "Tipo='" & stplit(15) & "', "
+            Try
+                Dim stplit() As String = st.Split("|") ''separamos
+                If stplit.Length < 3 OrElse stplit(stplit.Length - 1) <> "FIN" Then
+                    Return False
+                End If
+                Dim sttien As String = stplit(0)
+                Dim stbase As String = stplit(1) 'que base
+                Dim storden As String = stplit(2) 'que orden
+                Dim stdata As String = ""
+                Select Case stbase
+                    Case "ART"
+                        Select Case storden
+                            Case "MOD"
+                                If stplit.Length > 5 Then
+                                    stdata = "UPDATE Articulos SET " & stplit(3) & "=" & stplit(4) & " WHERE Clave='" & sqlSafe(stplit(5)) & "'"
                                 End If
+                            Case "DEL"
+                                If stplit.Length > 3 Then
+                                    stdata = "DELETE FROM Articulos WHERE Clave='" & sqlSafe(stplit(3)) & "'"
+                                End If
+                            Case "NOM"
+                                If stplit.Length > 18 Then
+                                    Dim art As articuloventa = New articuloventa(stplit(3))
+                                    If art.found Then
+                                        stdata = "UPDATE Articulos SET Descripción='" & sqlSafe(stplit(4)) & "', "
+                                        stdata &= "Menudeo=" & Val(stplit(5)) & ", "
+                                        stdata &= "Mayoreo=" & Val(stplit(6)) & ", "
+                                        stdata &= "PME=" & Val(stplit(7)) & ", "
+                                        stdata &= "Especial=" & Val(stplit(8)) & ", "
+                                        stdata &= "Precio=" & Val(stplit(9)) & ", "
+                                        stdata &= "PGmen=" & Val(stplit(10)) & ", "
+                                        stdata &= "PGmay=" & Val(stplit(11)) & ", "
+                                        stdata &= "FUM='" & stplit(12) & "', "
+                                        stdata &= "Paquete='" & sqlSafe(stplit(13)) & "', "
+                                        stdata &= "cbarra='" & sqlSafe(stplit(14)) & "', "
+                                        If stplit(15) = "Articulos" Then
+                                            stdata &= "Tipo='" & "Artículos" & "', "
+                                        Else
+                                            stdata &= "Tipo='" & sqlSafe(stplit(15)) & "', "
+                                        End If
 
-                                stdata &= "Einf=" & stplit(16) & ", "
-                                stdata &= "Tags='" & stplit(17) & "', "
-                                stdata &= "usuariofum='" & stplit(18) & "' WHERE clave='" & stplit(3) & "'"
-
-                            Else
-                                stdata = "INSERT INTO Articulos (Clave,Descripción,Menudeo,Mayoreo,PME,Especial,Precio,PGmen,PGmay,FUM,Paquete,cbarra,Tipo,Einf,Tags,usuariofum) VALUES ('"
-                                stdata &= stplit(3) & "','" 'clave
-                                stdata &= stplit(4) & "'," 'des
-                                stdata &= stplit(5) & "," 'men
-                                stdata &= stplit(6) & "," 'may
-                                stdata &= stplit(7) & "," 'pme
-                                stdata &= stplit(8) & "," 'especial
-                                stdata &= stplit(9) & "," 'precio
-                                stdata &= stplit(10) & "," 'pgmen
-                                stdata &= stplit(11) & ",'" 'pgmay
-                                stdata &= stplit(12) & "','" 'fum
-                                stdata &= stplit(13) & "','" 'pq
-                                stdata &= stplit(14) & "','" 'cbarras
-                                stdata &= stplit(15) & "'," 'tipo
-                                stdata &= stplit(16) & ",'" 'einf
-                                stdata &= stplit(17) & "','" 'tags
-                                stdata &= stplit(18) & "')" 'usuariofum
-                            End If
-                    End Select
-                    Dim orden As OleDb.OleDbCommand = New OleDb.OleDbCommand(stdata, conart)
-                    orden.ExecuteReader()
-                Case "CLNT"
-                    Select Case storden
-                        Case "ADD"
-                            Dim clnt As Cliente = New Cliente
-                            With clnt
-                                .Nombre = stplit(3)
-                                ' MessageBox.Show(.Nombre)
-                                .Direccion = stplit(4)
-                                ' MessageBox.Show(.Direccion)
-                                .mayoreo = stplit(5)
-                                ' MessageBox.Show(.mayoreo)
-                                .credito = stplit(6)
-                                ' MessageBox.Show(.credito)
-                                .dc = stplit(7)
-                                '  MessageBox.Show(.dc)
-                                .especial = stplit(8)
-                                '   MessageBox.Show(.especial)
-                                .RFC = stplit(9)
-                                '    MessageBox.Show(.RFC)
-                                .telcasa = stplit(10)
-                                '     MessageBox.Show(.telcasa)
-                                .telcel = stplit(11)
-                                '      MessageBox.Show(.telcel)
-                                .mail = stplit(12)
-                                '       MessageBox.Show(.mail)
-                                .ultcompra = stplit(13)
-                                '        MessageBox.Show(.ultcompra)
-
-                                clnt.addme(-1, False)
-                            End With
-                        Case "DEL"
-                            Dim clnt As Cliente = New Cliente(stplit(3))
-
-
-                    End Select
-                Case "HND"
-
-            End Select
-            inter = True
-
-
+                                        stdata &= "Einf=" & stplit(16) & ", "
+                                        stdata &= "Tags='" & sqlSafe(stplit(17)) & "', "
+                                        stdata &= "usuariofum='" & sqlSafe(stplit(18)) & "' WHERE clave='" & sqlSafe(stplit(3)) & "'"
+                                    Else
+                                        stdata = "INSERT INTO Articulos (Clave,Descripción,Menudeo,Mayoreo,PME,Especial,Precio,PGmen,PGmay,FUM,Paquete,cbarra,Tipo,Einf,Tags,usuariofum) VALUES ('"
+                                        stdata &= sqlSafe(stplit(3)) & "','" 'clave
+                                        stdata &= sqlSafe(stplit(4)) & "'," 'des
+                                        stdata &= Val(stplit(5)) & "," 'men
+                                        stdata &= Val(stplit(6)) & "," 'may
+                                        stdata &= Val(stplit(7)) & "," 'pme
+                                        stdata &= Val(stplit(8)) & "," 'especial
+                                        stdata &= Val(stplit(9)) & "," 'precio
+                                        stdata &= Val(stplit(10)) & "," 'pgmen
+                                        stdata &= Val(stplit(11)) & ",'" 'pgmay
+                                        stdata &= stplit(12) & "','" 'fum
+                                        stdata &= sqlSafe(stplit(13)) & "','" 'pq
+                                        stdata &= sqlSafe(stplit(14)) & "','" 'cbarras
+                                        stdata &= sqlSafe(stplit(15)) & "'," 'tipo
+                                        stdata &= stplit(16) & ",'" 'einf
+                                        stdata &= sqlSafe(stplit(17)) & "','" 'tags
+                                        stdata &= sqlSafe(stplit(18)) & "')" 'usuariofum
+                                    End If
+                                End If
+                        End Select
+                        If Not String.IsNullOrEmpty(stdata) Then
+                            SyncLock conart
+                                Using cmd As New OleDb.OleDbCommand(stdata, conart)
+                                    cmd.ExecuteNonQuery()
+                                End Using
+                            End SyncLock
+                        End If
+                    Case "CLNT"
+                        Select Case storden
+                            Case "ADD"
+                                If stplit.Length > 13 Then
+                                    Dim clnt As Cliente = New Cliente
+                                    With clnt
+                                        .Nombre = stplit(3)
+                                        .Direccion = stplit(4)
+                                        .mayoreo = Val(stplit(5))
+                                        .credito = stplit(6)
+                                        .dc = Val(stplit(7))
+                                        .especial = Val(stplit(8))
+                                        .RFC = stplit(9)
+                                        .telcasa = stplit(10)
+                                        .telcel = stplit(11)
+                                        .mail = stplit(12)
+                                        .ultcompra = stplit(13)
+                                        clnt.addme(-1, False)
+                                    End With
+                                End If
+                            Case "DEL"
+                                If stplit.Length > 3 Then
+                                    Dim clnt As Cliente = New Cliente(stplit(3))
+                                End If
+                        End Select
+                    Case "HND"
+                End Select
+                Return True
+            Catch ex As Exception
+                LogAppError(ex, "connexion.inter")
+                Return False
+            End Try
         End Function
 
         Public Sub startlistener()
-            stoplistener = False
-            Dim hostName As String = Dns.GetHostName
-
-            For Each address In Dns.GetHostEntry(hostName).AddressList()
-                If address.AddressFamily = Sockets.AddressFamily.InterNetwork Then
-                    myip = address.ToString
-                End If
-            Next
-            Dim hilo As Thread = New Thread(New ThreadStart(AddressOf listener))
-            hilo.Start()
+            Try
+                stoplistener = False
+                myip = "127.0.0.1"
+                Try
+                    Dim hostName As String = Dns.GetHostName
+                    For Each address In Dns.GetHostEntry(hostName).AddressList()
+                        If address.AddressFamily = Sockets.AddressFamily.InterNetwork Then
+                            myip = address.ToString
+                            Exit For
+                        End If
+                    Next
+                Catch
+                    myip = "127.0.0.1"
+                End Try
+                Dim hilo As Thread = New Thread(New ThreadStart(AddressOf listener))
+                hilo.IsBackground = True
+                hilo.Start()
+            Catch ex As Exception
+                LogAppError(ex, "connexion.startlistener")
+            End Try
         End Sub
         Public Sub New(port As Int32)
             Me.port = port
@@ -205,49 +216,51 @@ Module connexion
 
         End Function
         Private Sub listener()
-            Dim localAddr As IPAddress = IPAddress.Parse(myip)
-            Dim data As String = Nothing
-            server = New TcpListener(localAddr, port)
             Try
-                server.Start()
-            Catch ex As Exception
-                Exit Sub
-            End Try
+                Dim localAddr As IPAddress = Nothing
+                If Not IPAddress.TryParse(myip, localAddr) Then
+                    localAddr = IPAddress.Any
+                End If
+                Dim data As String = Nothing
+                server = New TcpListener(localAddr, port)
+                Try
+                    server.Start()
+                Catch ex As Exception
+                    LogAppError(ex, "connexion.listener.server.Start")
+                    Exit Sub
+                End Try
 
-            Dim state As Integer = 0
-            Dim bytes(2048) As Byte
-            While Not stoplistener
-
-                client = server.AcceptTcpClient()
-                stream = client.GetStream()
-                'data = "hand"
-                'Dim msg As Byte() = System.Text.Encoding.ASCII.GetBytes(data)
-                Dim msg As Byte()
-
-                'stream.Write(msg, 0, msg.Length)
-                Dim i As Int32
-                i = stream.Read(bytes, 0, bytes.Length)
-                While i <> 0
-
-                    ' Translate data bytes to a ASCII string.
-                    data = System.Text.Encoding.ASCII.GetString(bytes, 0, i)
-                    '    ' Process the data sent by the client.
-                    If data <> "" Then
-                        ' MessageBox.Show(data)
-                        If inter(data) Then
-                            msg = System.Text.Encoding.ASCII.GetBytes(tipoconexion(1))
-                            stream.Write(msg, 0, msg.Length)
-                        End If
-                        data = Nothing
-                        i = 0
-                    End If
-                    '    ' Send bac
-                    '    ' k a response.
-
+                Dim bytes(2048) As Byte
+                While Not stoplistener
+                    Try
+                        client = server.AcceptTcpClient()
+                        stream = client.GetStream()
+                        Dim msg As Byte()
+                        Dim i As Int32
+                        i = stream.Read(bytes, 0, bytes.Length)
+                        While i <> 0
+                            data = System.Text.Encoding.ASCII.GetString(bytes, 0, i)
+                            If data <> "" Then
+                                If inter(data) Then
+                                    msg = System.Text.Encoding.ASCII.GetBytes(tipoconexion(1))
+                                    stream.Write(msg, 0, msg.Length)
+                                End If
+                                data = Nothing
+                                i = 0
+                            End If
+                        End While
+                        client.Close()
+                    Catch exClient As Exception
+                        ' Error en comunicación con un cliente específico, no debe matar el servidor
+                        Try
+                            If client IsNot Nothing Then client.Close()
+                        Catch
+                        End Try
+                    End Try
                 End While
-
-                client.Close()
-            End While
+            Catch ex As Exception
+                LogAppError(ex, "connexion.listener")
+            End Try
         End Sub
 
     End Class

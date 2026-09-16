@@ -1,4 +1,4 @@
-﻿Imports System
+Imports System
 Imports System.IO
 Module funciones
     Dim nomprevbut As String = ""
@@ -784,5 +784,38 @@ Module funciones
             checkpoint = chare
         End If
     End Function
+
+    ''' <summary>
+    ''' Sanitiza una cadena para incluirla de forma segura en consultas SQL, escapando apóstrofes dobles.
+    ''' </summary>
+    Public Function sqlSafe(ByVal texto As Object) As String
+        If texto Is Nothing OrElse DBNull.Value.Equals(texto) Then
+            Return ""
+        End If
+        Return texto.ToString().Replace("'", "''")
+    End Function
+
+    ''' <summary>
+    ''' Registra un error de manera segura en un archivo de log C:\sc3\crash.log sin lanzar excepciones secundarias.
+    ''' </summary>
+    Public Sub LogAppError(ByVal ex As Exception, Optional ByVal origen As String = "")
+        Try
+            Dim logDir As String = "C:\sc3"
+            If Not System.IO.Directory.Exists(logDir) Then
+                System.IO.Directory.CreateDirectory(logDir)
+            End If
+            Dim logPath As String = System.IO.Path.Combine(logDir, "crash.log")
+            Dim msg As String = String.Format("[{0:yyyy-MM-dd HH:mm:ss}] [{1}] {2}{3}{4}{5}",
+                                              DateTime.Now,
+                                              If(String.IsNullOrEmpty(origen), "GENERAL", origen),
+                                              If(ex IsNot Nothing, ex.Message, "Desconocido"),
+                                              Environment.NewLine,
+                                              If(ex IsNot Nothing, ex.StackTrace, ""),
+                                              Environment.NewLine & New String("-"c, 60) & Environment.NewLine)
+            System.IO.File.AppendAllText(logPath, msg, System.Text.Encoding.UTF8)
+        Catch
+            ' Silencioso para prevenir errores en cascada
+        End Try
+    End Sub
 
 End Module

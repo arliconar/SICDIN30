@@ -100,10 +100,40 @@ Module nube
     ''' <summary>
     ''' Copia de seguridad de bases locales en la ruta de respaldo (al cerrar la app).
     ''' </summary>
+    Private Sub SafeUpdateLoadscreen(stepText As String)
+        Try
+            If loadscreen IsNot Nothing Then
+                If loadscreen.InvokeRequired Then
+                    loadscreen.BeginInvoke(Sub()
+                                               Try
+                                                   loadscreen.stepp()
+                                                   loadscreen.loadtext.Text = stepText
+                                               Catch
+                                               End Try
+                                           End Sub)
+                Else
+                    loadscreen.stepp()
+                    loadscreen.loadtext.Text = stepText
+                End If
+            End If
+        Catch
+        End Try
+    End Sub
+
     Public Sub backinup()
         Try
-            loadscreen.Close()
-            loadscreen.loader(6, 1)
+            Try
+                If loadscreen.InvokeRequired Then
+                    loadscreen.Invoke(Sub()
+                                          loadscreen.Close()
+                                          loadscreen.loader(6, 1)
+                                      End Sub)
+                Else
+                    loadscreen.Close()
+                    loadscreen.loader(6, 1)
+                End If
+            Catch
+            End Try
 
             Dim targetDir As String = pathbackup
             If Not String.IsNullOrWhiteSpace(targetDir) AndAlso tienda IsNot Nothing AndAlso Not String.IsNullOrEmpty(tienda.apodo) Then
@@ -114,8 +144,7 @@ Module nube
 
             If Not Directory.Exists(targetDir) Then Directory.CreateDirectory(targetDir)
 
-            loadscreen.stepp()
-            loadscreen.loadtext.Text = "Respaldando base de artículos"
+            SafeUpdateLoadscreen("Respaldando base de artículos")
             conart.Close()
             Try
                 File.Copy("C:\sc3\art.dat", Path.Combine(targetDir, "art.dat"), True)
@@ -123,8 +152,7 @@ Module nube
                 SyncLog("Error al respaldar art.dat: " & ex.Message, True)
             End Try
 
-            loadscreen.stepp()
-            loadscreen.loadtext.Text = "Respaldando base de clientes"
+            SafeUpdateLoadscreen("Respaldando base de clientes")
             conclnt.Close()
             Try
                 File.Copy("C:\sc3\clnt.dat", Path.Combine(targetDir, "clnt.dat"), True)
@@ -132,8 +160,7 @@ Module nube
                 SyncLog("Error al respaldar clnt.dat: " & ex.Message, True)
             End Try
 
-            loadscreen.stepp()
-            loadscreen.loadtext.Text = "Respaldando base de ventas"
+            SafeUpdateLoadscreen("Respaldando base de ventas")
             convent.Close()
             Try
                 File.Copy("C:\sc3\venta.dat", Path.Combine(targetDir, "venta.dat"), True)
@@ -141,8 +168,7 @@ Module nube
                 SyncLog("Error al respaldar venta.dat: " & ex.Message, True)
             End Try
 
-            loadscreen.stepp()
-            loadscreen.loadtext.Text = "Respaldando base de reparaciones"
+            SafeUpdateLoadscreen("Respaldando base de reparaciones")
             conbicrep.Close()
             Try
                 File.Copy("C:\sc3\bicirep.dat", Path.Combine(targetDir, "bicirep.dat"), True)
@@ -150,8 +176,7 @@ Module nube
                 SyncLog("Error al respaldar bicirep.dat: " & ex.Message, True)
             End Try
 
-            loadscreen.stepp()
-            loadscreen.loadtext.Text = "Respaldando base de trabajadores"
+            SafeUpdateLoadscreen("Respaldando base de trabajadores")
             contra.Close()
             Try
                 File.Copy("C:\sc3\trabajadores.dat", Path.Combine(targetDir, "trabajadores.dat"), True)
@@ -159,8 +184,7 @@ Module nube
                 SyncLog("Error al respaldar trabajadores.dat: " & ex.Message, True)
             End Try
 
-            loadscreen.stepp()
-            loadscreen.loadtext.Text = "Respaldando base de usuarios"
+            SafeUpdateLoadscreen("Respaldando base de usuarios")
             conusu.Close()
             Try
                 File.Copy("C:\sc3\usu.dat", Path.Combine(targetDir, "usu.dat"), True)
@@ -170,6 +194,7 @@ Module nube
 
         Catch ex As Exception
             SyncLog("Error general en backinup: " & ex.Message, True)
+            LogAppError(ex, "nube.backinup")
         Finally
             End
         End Try

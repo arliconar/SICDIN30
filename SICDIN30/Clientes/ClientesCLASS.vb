@@ -289,31 +289,38 @@ Public Class Cliente
         Return id
     End Function
     Public Sub addclntthread()
-        Dim st As String = "INSERT INTO client (id,Nombre,Dirección,Mayoreo,Credito,Adeudo,dc,Especial,RFC,Telcasa,Telcel,mail,ultmod,ultcompra) VALUES ('" & id
-        Dim sep As String = "','"
-        st = st & sep & Nombre
-        st = st & sep & Direccion
-        st = st & "'," & mayoreo
-        st = st & ",'" & credito
-        st = st & sep & 0
-        st = st & sep & dc
-        st = st & "'," & especial
-        st = st & ",'" & RFC
-        st = st & sep & telcasa
-        st = st & sep & telcel
-        st = st & sep & mail
-        st = st & sep & fechasql(ultmod)
-        st = st & sep & fechasql(Now)
-        st = st & "')"
-        orden = New OleDb.OleDbCommand(st, conclnt)
-        orden.ExecuteNonQuery()
-        autocompletarclnt()
         Try
-            If addcloud Then
-                nube.QueueClienteDelta(Me, "UPSERT")
-            End If
+            Dim st As String = "INSERT INTO client (id,Nombre,Dirección,Mayoreo,Credito,Adeudo,dc,Especial,RFC,Telcasa,Telcel,mail,ultmod,ultcompra) VALUES ('" & id
+            Dim sep As String = "','"
+            st = st & sep & sqlSafe(Nombre)
+            st = st & sep & sqlSafe(Direccion)
+            st = st & "'," & mayoreo
+            st = st & ",'" & credito
+            st = st & sep & 0
+            st = st & sep & dc
+            st = st & "'," & especial
+            st = st & ",'" & sqlSafe(RFC)
+            st = st & sep & sqlSafe(telcasa)
+            st = st & sep & sqlSafe(telcel)
+            st = st & sep & sqlSafe(mail)
+            st = st & sep & fechasql(ultmod)
+            st = st & sep & fechasql(Now)
+            st = st & "')"
+            SyncLock conclnt
+                Using cmd As New OleDb.OleDbCommand(st, conclnt)
+                    cmd.ExecuteNonQuery()
+                End Using
+                autocompletarclnt()
+            End SyncLock
+            Try
+                If addcloud Then
+                    nube.QueueClienteDelta(Me, "UPSERT")
+                End If
+            Catch ex As Exception
+                nube.SyncLog("Error al encolar alta de cliente: " & ex.Message, True)
+            End Try
         Catch ex As Exception
-            nube.SyncLog("Error al encolar alta de cliente: " & ex.Message, True)
+            LogAppError(ex, "ClientesCLASS.addclntthread")
         End Try
     End Sub
     Public Sub deleteme(askme As Boolean, Optional delc As Boolean = True)
@@ -327,15 +334,22 @@ Public Class Cliente
         hilo.Start()
     End Sub
     Private Sub deletemethread()
-        Dim st As String = "DELETE FROM client WHERE Id=" & id
-        orden = New OleDb.OleDbCommand(st, conclnt)
-        orden.ExecuteNonQuery()
         Try
-            If delcloud Then
-                nube.QueueClienteDelta(Me, "DELETE")
-            End If
+            Dim st As String = "DELETE FROM client WHERE Id=" & id
+            SyncLock conclnt
+                Using cmd As New OleDb.OleDbCommand(st, conclnt)
+                    cmd.ExecuteNonQuery()
+                End Using
+            End SyncLock
+            Try
+                If delcloud Then
+                    nube.QueueClienteDelta(Me, "DELETE")
+                End If
+            Catch ex As Exception
+                nube.SyncLog("Error al encolar baja de cliente: " & ex.Message, True)
+            End Try
         Catch ex As Exception
-            nube.SyncLog("Error al encolar baja de cliente: " & ex.Message, True)
+            LogAppError(ex, "ClientesCLASS.deletemethread")
         End Try
     End Sub
     Public Function staddcon() As String ''crea la cadena para de conexion para agregar cliente
