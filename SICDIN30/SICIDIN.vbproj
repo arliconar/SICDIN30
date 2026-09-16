@@ -1,163 +1,37 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{DC2F167B-F92E-4AAD-8B49-5875C1657531}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <StartupObject>SICDIN30.My.MyApplication</StartupObject>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetPlatformMinVersion>7.0</TargetPlatformMinVersion>
+    <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
+    <NoWarn>40000,42016,41999,42017,42018,42019,42032,42036,42020,42021,42022,CA1416;$(NoWarn)</NoWarn>
     <RootNamespace>SICDIN30</RootNamespace>
     <AssemblyName>SICDIN30</AssemblyName>
-    <FileAlignment>512</FileAlignment>
+    <StartupObject>SICDIN30.My.MyApplication</StartupObject>
+    <UseWindowsForms>true</UseWindowsForms>
     <MyType>WindowsForms</MyType>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <Deterministic>true</Deterministic>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
-    <TargetFrameworkProfile />
-    <PublishUrl>C:\Users\artzm\OneDrive\sc3cloud\temfix\</PublishUrl>
-    <Install>true</Install>
-    <InstallFrom>Disk</InstallFrom>
-    <UpdateEnabled>false</UpdateEnabled>
-    <UpdateMode>Background</UpdateMode>
-    <UpdateInterval>7</UpdateInterval>
-    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
-    <UpdatePeriodically>false</UpdatePeriodically>
-    <UpdateRequired>false</UpdateRequired>
-    <MapFileExtensions>true</MapFileExtensions>
-    <WebPage>publish.htm</WebPage>
-    <ApplicationRevision>198</ApplicationRevision>
-    <ApplicationVersion>1.0.8.%2a</ApplicationVersion>
-    <UseApplicationTrust>false</UseApplicationTrust>
-    <PublishWizardCompleted>true</PublishWizardCompleted>
-    <BootstrapperEnabled>true</BootstrapperEnabled>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <DefineDebug>true</DefineDebug>
-    <DefineTrace>true</DefineTrace>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DocumentationFile>SICDIN30.xml</DocumentationFile>
-    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <DefineDebug>false</DefineDebug>
-    <DefineTrace>true</DefineTrace>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DocumentationFile>SICDIN30.xml</DocumentationFile>
-    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
-  </PropertyGroup>
-  <PropertyGroup>
+
     <OptionExplicit>On</OptionExplicit>
-  </PropertyGroup>
-  <PropertyGroup>
     <OptionCompare>Binary</OptionCompare>
-  </PropertyGroup>
-  <PropertyGroup>
     <OptionStrict>Off</OptionStrict>
-  </PropertyGroup>
-  <PropertyGroup>
     <OptionInfer>On</OptionInfer>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <DebugSymbols>true</DebugSymbols>
-    <DefineDebug>true</DefineDebug>
-    <DefineTrace>true</DefineTrace>
-    <OutputPath>bin\x64\Debug\</OutputPath>
-    <DocumentationFile>SICDIN30.xml</DocumentationFile>
-    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <Prefer32Bit>true</Prefer32Bit>
-    <GenerateSerializationAssemblies>On</GenerateSerializationAssemblies>
-    <UseVSHostingProcess>true</UseVSHostingProcess>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <DefineTrace>true</DefineTrace>
-    <OutputPath>bin\x64\Release\</OutputPath>
-    <DocumentationFile>SICDIN30.xml</DocumentationFile>
-    <Optimize>true</Optimize>
-    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <Prefer32Bit>true</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup>
-    <ManifestCertificateThumbprint>4E29322B17EBF6224E6A0A89700119E0D664031C</ManifestCertificateThumbprint>
-  </PropertyGroup>
-  <PropertyGroup>
-    <ManifestKeyFile>SICDIN30_TemporaryKey.pfx</ManifestKeyFile>
-  </PropertyGroup>
-  <PropertyGroup>
-    <GenerateManifests>true</GenerateManifests>
-  </PropertyGroup>
-  <PropertyGroup>
-    <SignManifests>false</SignManifests>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <DebugSymbols>true</DebugSymbols>
-    <DefineDebug>true</DefineDebug>
-    <DefineTrace>true</DefineTrace>
-    <OutputPath>bin\x86\Debug\</OutputPath>
-    <DocumentationFile>SICDIN30.xml</DocumentationFile>
-    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <Prefer32Bit>true</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <DefineTrace>true</DefineTrace>
-    <OutputPath>bin\x86\Release\</OutputPath>
-    <DocumentationFile>SICDIN30.xml</DocumentationFile>
-    <Optimize>true</Optimize>
-    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <Prefer32Bit>true</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup>
+
     <ApplicationIcon>iconosc.ico</ApplicationIcon>
-  </PropertyGroup>
-  <PropertyGroup>
     <ApplicationManifest>My Project\app.manifest</ApplicationManifest>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateResourceWarnOnBinaryFormatterUse>false</GenerateResourceWarnOnBinaryFormatterUse>
+
+    <Platforms>x64;x86;AnyCPU</Platforms>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="EnvDTE, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Deployment" />
-    <Reference Include="System.Design" />
-    <Reference Include="System.DirectoryServices" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Web.Services" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Web.Extensions" />
-  </ItemGroup>
+
   <ItemGroup>
     <Import Include="Microsoft.VisualBasic" />
     <Import Include="System" />
     <Import Include="System.Collections" />
     <Import Include="System.Collections.Generic" />
     <Import Include="System.Data" />
-    <Import Include="System.Data.Sql" />
-    <Import Include="System.Data.SqlClient" />
     <Import Include="System.Drawing" />
     <Import Include="System.Diagnostics" />
     <Import Include="System.Windows.Forms" />
@@ -165,642 +39,51 @@
     <Import Include="System.Xml.Linq" />
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="Calculadora.Designer.vb">
-      <DependentUpon>Calculadora.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Calculadora.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="copiador.vb" />
-    <Compile Include="Clientes\ClientesCLASS.vb" />
-    <Compile Include="closesic.Designer.vb">
-      <DependentUpon>closesic.vb</DependentUpon>
-    </Compile>
-    <Compile Include="closesic.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="copier.Designer.vb">
-      <DependentUpon>copier.vb</DependentUpon>
-    </Compile>
-    <Compile Include="copier.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Enviarwhats.Designer.vb">
-      <DependentUpon>Enviarwhats.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Enviarwhats.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Inventarios\addexist.Designer.vb">
-      <DependentUpon>addexist.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Inventarios\addexist.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Inventarios\altaarticulo.Designer.vb">
-      <DependentUpon>altaarticulo.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Inventarios\altaarticulo.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ApplicationEvents.vb" />
-    <Compile Include="Inventarios\cierrededia.Designer.vb">
-      <DependentUpon>cierrededia.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Inventarios\cierrededia.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Modulos\basesdos.vb" />
-    <Compile Include="Modulos\basesmod.vb" />
-    <Compile Include="Modulos\connexion.vb" />
-    <Compile Include="Inventarios\editpagos.Designer.vb">
-      <DependentUpon>editpagos.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Inventarios\editpagos.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Inventarios\fechabusqueda.Designer.vb">
-      <DependentUpon>fechabusqueda.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Inventarios\fechabusqueda.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Inventarios\perdida.Designer.vb">
-      <DependentUpon>perdida.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Inventarios\perdida.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Inventarios\retiroefec.Designer.vb">
-      <DependentUpon>retiroefec.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Inventarios\retiroefec.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Inventarios\Visor.Designer.vb">
-      <DependentUpon>Visor.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Inventarios\Visor.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Superguia\Formulas.Designer.vb">
-      <DependentUpon>Formulas.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Superguia\Formulas.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Ventas\libreta.Designer.vb">
-      <DependentUpon>libreta.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Ventas\libreta.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Modulos\Estructuras.vb" />
-    <Compile Include="Modulos\garbage.vb" />
-    <Compile Include="Modulos\nube.vb" />
-    <Compile Include="Modulos\printbicobj.vb" />
-    <Compile Include="Modulos\wait.Designer.vb">
-      <DependentUpon>wait.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Modulos\wait.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="printing\pagnot.designer.vb">
-      <DependentUpon>pagnot.vb</DependentUpon>
-    </Compile>
-    <Compile Include="printing\pagnot.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="printing\print.vb" />
-    <Compile Include="Clientes\clntrep.Designer.vb">
-      <DependentUpon>clntrep.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Clientes\clntrep.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Reportes.Designer.vb">
-      <DependentUpon>Reportes.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Reportes.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="session.Designer.vb">
-      <DependentUpon>session.vb</DependentUpon>
-    </Compile>
-    <Compile Include="session.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="setup.Designer.vb">
-      <DependentUpon>setup.vb</DependentUpon>
-    </Compile>
-    <Compile Include="setup.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="sql.Designer.vb">
-      <DependentUpon>sql.vb</DependentUpon>
-    </Compile>
-    <Compile Include="sql.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Superguia\Descuento.Designer.vb">
-      <DependentUpon>Descuento.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Superguia\Descuento.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Usuarios\trabajadorform.Designer.vb">
-      <DependentUpon>trabajadorform.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Usuarios\trabajadorform.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Usuarios\userform.Designer.vb">
-      <DependentUpon>userform.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Usuarios\userform.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Ventas\artnot.Designer.vb">
-      <DependentUpon>artnot.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Ventas\artnot.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="calendar.designer.vb">
-      <DependentUpon>calendar.vb</DependentUpon>
-    </Compile>
-    <Compile Include="calendar.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Inventarios\catalogo.Designer.vb">
-      <DependentUpon>catalogo.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Inventarios\catalogo.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Clientes\clienteform.designer.vb">
-      <DependentUpon>clienteform.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Clientes\clienteform.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Clientes\clientes.Designer.vb">
-      <DependentUpon>clientes.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Clientes\clientes.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Modulos\database.vb" />
-    <Compile Include="dialog.designer.vb">
-      <DependentUpon>dialog.vb</DependentUpon>
-    </Compile>
-    <Compile Include="dialog.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Inventarios\existencias.Designer.vb">
-      <DependentUpon>existencias.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Inventarios\existencias.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Reparaciones\autorizacion.Designer.vb">
-      <DependentUpon>autorizacion.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Reparaciones\autorizacion.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Usuarios\usuarios.Designer.vb">
-      <DependentUpon>usuarios.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Usuarios\usuarios.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Inventarios\existenciasart.Designer.vb">
-      <DependentUpon>existenciasart.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Inventarios\existenciasart.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Ventas\ventrapid.Designer.vb">
-      <DependentUpon>ventrapid.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Ventas\ventrapid.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Ventas\visorpago.Designer.vb">
-      <DependentUpon>visorpago.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Ventas\visorpago.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Ventas\formventa.designer.vb">
-      <DependentUpon>formventa.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Ventas\formventa.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Inventarios\foundplus.Designer.vb">
-      <DependentUpon>foundplus.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Inventarios\foundplus.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Modulos\funciones.vb" />
-    <Compile Include="Modulos\funcionesdg.vb" />
-    <Compile Include="loader.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="loader.Designer.vb">
-      <DependentUpon>loader.vb</DependentUpon>
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="loadscreen.Designer.vb">
-      <DependentUpon>loadscreen.vb</DependentUpon>
-    </Compile>
-    <Compile Include="loadscreen.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="main.Designer.vb">
-      <DependentUpon>main.vb</DependentUpon>
-    </Compile>
-    <Compile Include="main.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="printing\prints.vb" />
-    <Compile Include="Reparaciones\modver.Designer.vb">
-      <DependentUpon>modver.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Reparaciones\modver.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="My Project\AssemblyInfo.vb" />
-    <Compile Include="My Project\Application.Designer.vb">
+    <PackageReference Include="System.Data.OleDb" Version="8.0.0" />
+    <PackageReference Include="System.DirectoryServices" Version="8.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Ventas\formventa2.vb" />
+    <None Include="Ventas\formventa2.vb" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="My Project\Application.Designer.vb">
+      <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>Application.myapp</DependentUpon>
-      <DesignTime>True</DesignTime>
     </Compile>
-    <Compile Include="My Project\Resources.Designer.vb">
-      <AutoGen>True</AutoGen>
+    <Compile Update="My Project\Resources.Designer.vb">
       <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="My Project\Settings.Designer.vb">
+    <Compile Update="My Project\Settings.Designer.vb">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <AutoGen>True</AutoGen>
       <DependentUpon>Settings.settings</DependentUpon>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="opennota.Designer.vb">
-      <DependentUpon>opennota.vb</DependentUpon>
-    </Compile>
-    <Compile Include="opennota.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Reparaciones\ordentrabajo.Designer.vb">
-      <DependentUpon>ordentrabajo.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Reparaciones\ordentrabajo.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Reparaciones\razon.Designer.vb">
-      <DependentUpon>razon.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Reparaciones\razon.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="pagof.designer.vb">
-      <DependentUpon>pagof.vb</DependentUpon>
-    </Compile>
-    <Compile Include="pagof.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Reparaciones\reparacion.Designer.vb">
-      <DependentUpon>reparacion.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Reparaciones\reparacion.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Reparaciones\tabclone.Designer.vb">
-      <DependentUpon>tabclone.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Reparaciones\tabclone.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Reparaciones\trabajador.Designer.vb">
-      <DependentUpon>trabajador.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Reparaciones\trabajador.vb">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Modulos\variables.vb" />
   </ItemGroup>
+
   <ItemGroup>
-    <EmbeddedResource Include="Calculadora.resx">
-      <DependentUpon>Calculadora.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="closesic.resx">
-      <DependentUpon>closesic.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="copier.resx">
-      <DependentUpon>copier.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Enviarwhats.resx">
-      <DependentUpon>Enviarwhats.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Inventarios\addexist.resx">
-      <DependentUpon>addexist.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Inventarios\altaarticulo.resx">
-      <DependentUpon>altaarticulo.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Inventarios\cierrededia.resx">
-      <DependentUpon>cierrededia.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Inventarios\editpagos.resx">
-      <DependentUpon>editpagos.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Inventarios\fechabusqueda.resx">
-      <DependentUpon>fechabusqueda.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Inventarios\perdida.resx">
-      <DependentUpon>perdida.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Inventarios\retiroefec.resx">
-      <DependentUpon>retiroefec.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Inventarios\Visor.resx">
-      <DependentUpon>Visor.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Superguia\Formulas.resx">
-      <DependentUpon>Formulas.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Ventas\libreta.resx">
-      <DependentUpon>libreta.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Modulos\wait.resx">
-      <DependentUpon>wait.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="printing\pagnot.resx">
-      <DependentUpon>pagnot.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Clientes\clntrep.resx">
-      <DependentUpon>clntrep.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Reportes.resx">
-      <DependentUpon>Reportes.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="session.resx">
-      <DependentUpon>session.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="setup.resx">
-      <DependentUpon>setup.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="sql.resx">
-      <DependentUpon>sql.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Superguia\Descuento.resx">
-      <DependentUpon>Descuento.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Usuarios\trabajadorform.resx">
-      <DependentUpon>trabajadorform.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Usuarios\userform.resx">
-      <DependentUpon>userform.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Ventas\artnot.resx">
-      <DependentUpon>artnot.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Reparaciones\autorizacion.resx">
-      <DependentUpon>autorizacion.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="calendar.resx">
-      <DependentUpon>calendar.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Inventarios\catalogo.resx">
-      <DependentUpon>catalogo.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Clientes\clienteform.resx">
-      <DependentUpon>clienteform.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Clientes\clientes.resx">
-      <DependentUpon>clientes.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="dialog.resx">
-      <DependentUpon>dialog.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Inventarios\existencias.resx">
-      <DependentUpon>existencias.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Usuarios\usuarios.resx">
-      <DependentUpon>usuarios.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Inventarios\existenciasart.resx">
-      <DependentUpon>existenciasart.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Ventas\ventrapid.resx">
-      <DependentUpon>ventrapid.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Ventas\visorpago.resx">
-      <DependentUpon>visorpago.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Ventas\formventa.resx">
-      <DependentUpon>formventa.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Inventarios\foundplus.resx">
-      <DependentUpon>foundplus.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="loader.resx">
-      <DependentUpon>loader.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="loadscreen.resx">
-      <DependentUpon>loadscreen.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="main.resx">
-      <DependentUpon>main.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Reparaciones\modver.resx">
-      <DependentUpon>modver.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="My Project\Resources.resx">
+    <EmbeddedResource Update="My Project\Resources.resx">
       <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.vb</LastGenOutput>
       <CustomToolNamespace>My.Resources</CustomToolNamespace>
-      <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="opennota.resx">
-      <DependentUpon>opennota.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Reparaciones\ordentrabajo.resx">
-      <DependentUpon>ordentrabajo.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Reparaciones\razon.resx">
-      <DependentUpon>razon.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="pagof.resx">
-      <DependentUpon>pagof.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Reparaciones\reparacion.resx">
-      <DependentUpon>reparacion.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Reparaciones\tabclone.resx">
-      <DependentUpon>tabclone.vb</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Reparaciones\trabajador.resx">
-      <DependentUpon>trabajador.vb</DependentUpon>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="My Project\app.manifest" />
-    <None Include="My Project\Application.myapp">
+    <None Update="My Project\Application.myapp">
       <Generator>MyApplicationCodeGenerator</Generator>
       <LastGenOutput>Application.Designer.vb</LastGenOutput>
     </None>
-    <None Include="My Project\Settings.settings">
+    <None Update="My Project\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <CustomToolNamespace>My</CustomToolNamespace>
       <LastGenOutput>Settings.Designer.vb</LastGenOutput>
     </None>
-    <None Include="App.config" />
-    <None Include="packages.config" />
-    <None Include="SICDIN30_TemporaryKey.pfx" />
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="icono.ico" />
-    <Content Include="icono2.ico" />
-    <Content Include="iconosc.ico" />
-    <Content Include="My Project\dudaemo.png" />
-    <None Include="Resources\formula.png" />
-    <None Include="Resources\paste.png" />
-    <None Include="Resources\help.png" />
-    <None Include="Resources\flechader.png" />
-    <None Include="Resources\transferir.png" />
-    <None Include="Resources\reportes.png" />
-    <None Include="Resources\notify.png" />
-    <None Include="Resources\dots.png" />
-    <None Include="Resources\ventanueva.png" />
-    <None Include="Resources\Whatsapp.png" />
-    <None Include="Resources\halloween.png" />
-    <None Include="Resources\bandera.png" />
-    <None Include="Resources\bandera.jpg" />
-    <None Include="Resources\tamal.png" />
-    <None Include="Resources\reyes.png" />
-    <None Include="Resources\casaliconalogo.png" />
-    <None Include="Resources\navidad.png" />
-    <None Include="Resources\cloudsync.png" />
-    <None Include="Resources\logocltrans.png" />
-    <None Include="Resources\logocl.png" />
-    <None Include="Resources\calc.png" />
-    <None Include="Resources\canasta.png" />
-    <None Include="Resources\pack.png" />
-    <None Include="Resources\barcode.png" />
-    <None Include="Resources\setup.png" />
-    <None Include="Resources\roto.png" />
-    <None Include="Resources\mujeruser.png" />
-    <None Include="Resources\hombre.png" />
-    <None Include="Resources\biciuser.png" />
-    <None Include="Resources\floruser.png" />
-    <None Include="Resources\carrouser.png" />
-    <None Include="Resources\favorito.png" />
-    <None Include="Resources\mecanico.png" />
-    <None Include="Resources\usuarios.png" />
-    <None Include="Resources\cajar.png" />
-    <None Include="Resources\hoy.png" />
-    <None Include="Resources\libreta.png" />
-    <None Include="Resources\pagar.png" />
-    <None Include="Resources\edit.png" />
-    <None Include="Resources\copiar.png" />
-    <None Include="Resources\recargar.png" />
-    <None Include="Resources\pegar.png" />
-    <None Include="Resources\ETIQUETA.png" />
-    <None Include="Resources\image.png" />
-    <None Include="Resources\bicicleta.png" />
-    <None Include="Resources\telefono.png" />
-    <None Include="Resources\celular.png" />
-    <None Include="Resources\allystrans.png" />
-    <None Include="Resources\logoally.png" />
-    <None Include="Resources\logo.png" />
-    <None Include="Resources\iva.png" />
-    <None Include="Resources\ivono.png" />
-    <None Include="Resources\receipt_106581.png" />
-    <None Include="Resources\add_icon-icons.com_74429.png" />
-    <None Include="Resources\arrowdown_flech_1539.png" />
-    <None Include="Resources\uparrow_arriba_1538.png" />
-    <None Include="Resources\printer_icon-icons.com_52926.png" />
-    <None Include="Resources\1486504845-device-electronic-paper-education-business-office-print-printer_81370.png" />
-    <None Include="Resources\1486504366-check-clipboard-select-list-success-ok-tasks_81314.png" />
-    <None Include="Resources\1485476036-artboard-1_78544.png" />
-    <None Include="Resources\desalmacenar.png" />
-    <None Include="Resources\save_download_icon_131500.png" />
-    <None Include="Resources\entrega.png" />
-    <None Include="Resources\folderorangeopen_93000.png" />
-    <None Include="Resources\1486504830-delete-dustbin-empty-recycle-recycling-remove-trash_81361.png" />
-    <None Include="Resources\business-color_handout_icon-icons.com_53455.png" />
-    <None Include="Resources\delete_delete_deleteusers_delete_male_user_maleclient_2348.png" />
-    <None Include="Resources\businessapplication_edit_male_user_thepencil_theclient_negocio_2321.png" />
-    <None Include="Resources\zenmap_104119.png" />
-    <None Include="Resources\business_application_addmale_useradd_insert_add_user_client_2312.png" />
-    <None Include="Resources\Bagitems_icon-icons.com_51211.png" />
-    <None Include="Resources\technical-support-2_icon-icons.com_52811.png" />
-    <None Include="Resources\cancel_77947.png" />
-    <None Include="Resources\vcsnormal_93488.png" />
-    <None Include="Resources\1458264596_authorisation_lock_padlock_safe_password_privacy_security_icon-icons.com_55333.png" />
-    <None Include="Resources\file_cancel_outline_icon_139617.png" />
-    <None Include="Resources\saveexit.png" />
-    <None Include="Resources\Save-as_37111.png" />
-    <None Include="Resources\Logout_37127.png" />
-    <None Include="Resources\Pencil512_44200.png" />
-    <None Include="Resources\Inventory-maintenance_25374.png" />
-    <None Include="Resources\Sql-runner_35757.png" />
-    <None Include="Resources\catalog256_24878.png" />
-    <None Include="Resources\founder_icon-icons.com_76996.png" />
-    <None Include="Resources\loupe_78956.png" />
-    <None Include="Resources\ic_shopping_cart_128_28698.png" />
-    <None Include="Resources\emoji enfado.png" />
-    <None Include="Resources\dudaemo.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <BootstrapperPackage Include=".NETFramework,Version=v4.6.1">
-      <Visible>False</Visible>
-      <ProductName>Microsoft .NET Framework 4.6.1 %28x86 and x64%29</ProductName>
-      <Install>true</Install>
-    </BootstrapperPackage>
-    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
-      <Visible>False</Visible>
-      <ProductName>.NET Framework 3.5 SP1</ProductName>
-      <Install>false</Install>
-    </BootstrapperPackage>
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadata Include="Connected Services\" />
-  </ItemGroup>
-  <ItemGroup>
-    <COMReference Include="Microsoft.Office.Core">
-      <Guid>{2DF8D04C-5BFA-101B-BDE5-00AA0044DE52}</Guid>
-      <VersionMajor>2</VersionMajor>
-      <VersionMinor>8</VersionMinor>
-      <Lcid>0</Lcid>
-      <WrapperTool>primary</WrapperTool>
-      <Isolated>False</Isolated>
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </COMReference>
-    <COMReference Include="Microsoft.Office.Interop.Excel">
-      <Guid>{00020813-0000-0000-C000-000000000046}</Guid>
-      <VersionMajor>1</VersionMajor>
-      <VersionMinor>9</VersionMinor>
-      <Lcid>0</Lcid>
-      <WrapperTool>primary</WrapperTool>
-      <Isolated>False</Isolated>
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </COMReference>
-    <COMReference Include="VBIDE">
-      <Guid>{0002E157-0000-0000-C000-000000000046}</Guid>
-      <VersionMajor>5</VersionMajor>
-      <VersionMinor>3</VersionMinor>
-      <Lcid>0</Lcid>
-      <WrapperTool>primary</WrapperTool>
-      <Isolated>False</Isolated>
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </COMReference>
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
+
 </Project>

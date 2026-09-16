@@ -3,8 +3,9 @@ Imports System.IO
 Imports System.Text
 Imports System.Threading
 Imports System.Data.OleDb
-Imports System.Web.Script.Serialization
 Imports System.Collections.Generic
+Imports Newtonsoft.Json
+Imports Newtonsoft.Json.Linq
 
 Module nube
 
@@ -239,8 +240,7 @@ Module nube
             packet("action") = action
             packet("data") = data
 
-            Dim serializer As New JavaScriptSerializer()
-            Dim json As String = serializer.Serialize(packet)
+            Dim json As String = JsonConvert.SerializeObject(packet, Formatting.Indented)
 
             Dim filename As String = apodoStore & "_ART_" & DateTime.Now.ToString("yyyyMMdd_HHmmssfff") & "_" & packetId.Substring(0, 6) & ".json"
             Dim outboxFile As String = Path.Combine(GetLocalOutboxPath(), filename)
@@ -292,8 +292,7 @@ Module nube
             packet("action") = action
             packet("data") = data
 
-            Dim serializer As New JavaScriptSerializer()
-            Dim json As String = serializer.Serialize(packet)
+            Dim json As String = JsonConvert.SerializeObject(packet, Formatting.Indented)
 
             Dim filename As String = apodoStore & "_CLN_" & DateTime.Now.ToString("yyyyMMdd_HHmmssfff") & "_" & packetId.Substring(0, 6) & ".json"
             Dim outboxFile As String = Path.Combine(GetLocalOutboxPath(), filename)
@@ -386,7 +385,6 @@ Module nube
             Array.Sort(deltaFiles)
 
             Dim myApodo As String = If(tienda IsNot Nothing AndAlso Not String.IsNullOrEmpty(tienda.apodo), tienda.apodo.ToLower(), "local")
-            Dim serializer As New JavaScriptSerializer()
 
             Dim nArtUpdated As Integer = 0
             Dim nClntUpdated As Integer = 0
@@ -407,16 +405,16 @@ Module nube
 
                 Try
                     Dim json As String = File.ReadAllText(archivo, Encoding.UTF8)
-                    Dim packet As Dictionary(Of String, Object) = serializer.Deserialize(Of Dictionary(Of String, Object))(json)
+                    Dim packet As JObject = JObject.Parse(json)
 
-                    If packet IsNot Nothing AndAlso packet.ContainsKey("entity") Then
+                    If packet IsNot Nothing AndAlso packet("entity") IsNot Nothing Then
                         Dim entity As String = packet("entity").ToString().ToUpper()
-                        Dim action As String = If(packet.ContainsKey("action"), packet("action").ToString().ToUpper(), "UPSERT")
-                        Dim origin As String = If(packet.ContainsKey("origin"), packet("origin").ToString(), "")
+                        Dim action As String = If(packet("action") IsNot Nothing, packet("action").ToString().ToUpper(), "UPSERT")
+                        Dim origin As String = If(packet("origin") IsNot Nothing, packet("origin").ToString(), "")
 
                         If entity = "ARTICULO" Then
-                            If packet.ContainsKey("data") Then
-                                Dim data As Dictionary(Of String, Object) = TryCast(packet("data"), Dictionary(Of String, Object))
+                            If packet("data") IsNot Nothing Then
+                                Dim data As Dictionary(Of String, Object) = packet("data").ToObject(Of Dictionary(Of String, Object))()
                                 If data IsNot Nothing Then
                                     ApplyArticuloDelta(data, action)
                                     nArtUpdated += 1
@@ -424,25 +422,22 @@ Module nube
                             End If
 
                         ElseIf entity = "ARTICULO_BATCH" Then
-                            If packet.ContainsKey("data") Then
-                                Dim dataBatch As Dictionary(Of String, Object) = TryCast(packet("data"), Dictionary(Of String, Object))
-                                If dataBatch IsNot Nothing AndAlso dataBatch.ContainsKey("items") Then
-                                    Dim items = TryCast(dataBatch("items"), Object())
-                                    If items IsNot Nothing Then
-                                        For Each item In items
-                                            Dim itemDict = TryCast(item, Dictionary(Of String, Object))
-                                            If itemDict IsNot Nothing Then
-                                                ApplyArticuloDelta(itemDict, "UPSERT")
-                                                nArtUpdated += 1
-                                            End If
-                                        Next
-                                    End If
+                            If packet("data") IsNot Nothing Then
+                                Dim dataBatch As JToken = packet("data")
+                                If dataBatch("items") IsNot Nothing Then
+                                    For Each item In dataBatch("items")
+                                        Dim itemDict As Dictionary(Of String, Object) = item.ToObject(Of Dictionary(Of String, Object))()
+                                        If itemDict IsNot Nothing Then
+                                            ApplyArticuloDelta(itemDict, "UPSERT")
+                                            nArtUpdated += 1
+                                        End If
+                                    Next
                                 End If
                             End If
 
                         ElseIf entity = "CLIENTE" Then
-                            If packet.ContainsKey("data") Then
-                                Dim data As Dictionary(Of String, Object) = TryCast(packet("data"), Dictionary(Of String, Object))
+                            If packet("data") IsNot Nothing Then
+                                Dim data As Dictionary(Of String, Object) = packet("data").ToObject(Of Dictionary(Of String, Object))()
                                 If data IsNot Nothing Then
                                     ApplyClienteDelta(data, action)
                                     nClntUpdated += 1
@@ -703,7 +698,6 @@ Module nube
         Try
             Dim apodoStore As String = If(tienda IsNot Nothing AndAlso Not String.IsNullOrEmpty(tienda.apodo), tienda.apodo, "local")
             Dim cloudDir As String = GetCloudDeltasPath()
-            Dim serializer As New JavaScriptSerializer()
 
             Dim cs As String = GetOleDbConnectionString("C:\sc3\art.dat", "sganeo4")
             Using conn As New OleDbConnection(cs)
@@ -740,14 +734,14 @@ Module nube
                             totalExported += 1
 
                             If items.Count >= batchSize Then
-                                WriteBatchFile(apodoStore, cloudDir, serializer, items, batchIndex)
+                                WriteBatchFile(apodoStore, cloudDir, items, batchIndex)
                                 batchIndex += 1
                                 items.Clear()
                             End If
                         End While
 
                         If items.Count > 0 Then
-                            WriteBatchFile(apodoStore, cloudDir, serializer, items, batchIndex)
+                            WriteBatchFile(apodoStore, cloudDir, items, batchIndex)
                         End If
                     End Using
                 End Using
@@ -761,7 +755,7 @@ Module nube
         Return totalExported
     End Function
 
-    Private Sub WriteBatchFile(apodo As String, cloudDir As String, serializer As JavaScriptSerializer, items As List(Of Dictionary(Of String, Object)), batchIndex As Integer)
+    Private Sub WriteBatchFile(apodo As String, cloudDir As String, items As List(Of Dictionary(Of String, Object)), batchIndex As Integer)
         Dim packet As New Dictionary(Of String, Object)()
         Dim packetId As String = Guid.NewGuid().ToString("N")
         packet("version") = 1
@@ -775,7 +769,7 @@ Module nube
         data("items") = items.ToArray()
         packet("data") = data
 
-        Dim json As String = serializer.Serialize(packet)
+        Dim json As String = JsonConvert.SerializeObject(packet, Formatting.Indented)
         Dim fname As String = apodo & "_BATCH_" & DateTime.Now.ToString("yyyyMMdd_HHmmss") & "_" & batchIndex.ToString("D3") & ".json"
         Dim targetPath As String = Path.Combine(cloudDir, fname)
         File.WriteAllText(targetPath, json, Encoding.UTF8)

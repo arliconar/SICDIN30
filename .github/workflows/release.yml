@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   build-and-release:
-    name: Build & Publish Release
+    name: Build & Publish Release (.NET 8)
     runs-on: windows-latest
 
     steps:
@@ -40,18 +40,17 @@ jobs:
           Write-Host "Using Release Tag: $tag"
           "tag=$tag" >> $env:GITHUB_OUTPUT
 
-      - name: Setup NuGet
-        uses: nuget/setup-nuget@v2
+      - name: Setup .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
 
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
+      - name: Restore dependencies
+        run: dotnet restore SICDIN30/SICIDIN.vbproj
 
-      - name: Restore NuGet packages
-        run: nuget restore SICDIN30.sln
-
-      - name: Build Solution (Release x64)
+      - name: Publish (.NET 8 Release)
         run: |
-          msbuild SICDIN30.sln /p:Configuration=Release /p:Platform=x64 /v:minimal
+          dotnet publish SICDIN30/SICIDIN.vbproj -c Release -o SICDIN30/bin/Publish
 
       - name: Package Release Assets
         shell: pwsh
@@ -62,13 +61,11 @@ jobs:
           $fullPkg = Join-Path $dist 'SICDIN30-Full'
           New-Item -ItemType Directory -Path (Join-Path $fullPkg 'Resources') -Force | Out-Null
 
-          # Copiar ejecutable y archivo de configuración
-          Copy-Item 'SICDIN30\bin\x64\Release\SICDIN30.exe' "$dist\"
-          Copy-Item 'SICDIN30\bin\x64\Release\SICDIN30.exe.config' "$dist\"
-          Copy-Item 'SICDIN30\bin\x64\Release\SICDIN30.exe' "$fullPkg\"
-          Copy-Item 'SICDIN30\bin\x64\Release\SICDIN30.exe.config' "$fullPkg\"
+          # Copiar binarios y dependencias publicadas (.NET 8)
+          Copy-Item 'SICDIN30\bin\Publish\*' "$dist\" -Recurse
+          Copy-Item 'SICDIN30\bin\Publish\*' "$fullPkg\" -Recurse
 
-          # Copiar syste.dat si existe
+          # Copiar archivo de base de datos / estructura si existe
           if (Test-Path 'syste.dat') {
               Copy-Item 'syste.dat' "$fullPkg\"
           }
@@ -79,7 +76,7 @@ jobs:
               Compress-Archive -Path 'SICDIN30\Resources\*' -DestinationPath "$dist\resources.zip" -Force
           }
 
-          # 2. Empaquetar la distribución completa lista para usar (ejecutable + resources + config)
+          # 2. Empaquetar la distribución completa lista para usar (.exe + dlls + resources + config)
           Compress-Archive -Path "$fullPkg\*" -DestinationPath "$dist\SICDIN30-Full-$tag.zip" -Force
 
           Write-Host "Archivos generados en $($dist):"
@@ -95,7 +92,6 @@ jobs:
           generate_release_notes: true
           files: |
             dist/SICDIN30.exe
-            dist/SICDIN30.exe.config
             dist/resources.zip
             dist/SICDIN30-Full-*.zip
         env:

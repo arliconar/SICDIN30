@@ -1463,91 +1463,92 @@ Public Module Estructuras
         End Sub
 
         Public Sub load(clodes As String, exact As Boolean)
-            Dim orden As OleDb.OleDbCommand
-            Dim lector As OleDb.OleDbDataReader
             Dim st As String = "SELECT * FROM articulos WHERE "
             If exact Then
-                st &= "clave='" & clodes & "' AND Del=FALSE"
+                st &= "clave='" & sqlSafe(clodes) & "' AND (Del=FALSE OR Del IS NULL)"
             Else
-                st &= "clave LIKE '" & clodes & "%' OR descripción LIKE '%" & clodes & "%' OR cbarra LIKE '" & clodes & "'  AND Del=FALSE ORDER BY descripción"
+                st &= "clave LIKE '" & sqlSafe(clodes) & "%' OR descripción LIKE '%" & sqlSafe(clodes) & "%' OR cbarra LIKE '" & sqlSafe(clodes) & "' AND (Del=FALSE OR Del IS NULL) ORDER BY descripción"
             End If
-            orden = New OleDb.OleDbCommand(st, conart)
-            lector = orden.ExecuteReader
+
             found = False
-            If Not lector.HasRows Then
-                clave = clodes
+            Try
+                SyncLock conart
+                    Using cmd As New OleDb.OleDbCommand(st, conart)
+                        Using lector As OleDb.OleDbDataReader = cmd.ExecuteReader()
+                            If Not lector.HasRows Then
+                                clave = clodes
+                            End If
+                            While lector.Read()
+                                clave = voiddeleterstring(lector("Clave"))
+                                descripcion = voiddeleterstring(lector("Descripción"))
+                                If Not DBNull.Value.Equals(lector("precio")) Then
+                                    precio = lector("precio")
+                                Else
+                                    precio = 0
+                                End If
 
-            End If
-            While lector.Read
-                clave = lector("Clave")
-                descripcion = lector("Descripción")
-                If Not DBNull.Value.Equals(lector("precio")) Then
-                    precio = lector("precio")
-                Else
-                    precio = 0
-                End If
+                                menudeo = lector("Menudeo")
+                                mayoreo = lector("Mayoreo")
+                                If Not DBNull.Value.Equals(lector("Especial")) Then
+                                    especial = lector("Especial")
+                                Else
+                                    especial = 0
+                                End If
 
-                menudeo = lector("Menudeo")
-                mayoreo = lector("Mayoreo")
-                If Not DBNull.Value.Equals(lector("Especial")) Then
-                    especial = lector("Especial")
-                Else
-                    especial = 0
-                End If
+                                If Not DBNull.Value.Equals(lector("PME")) Then
+                                    pme = lector("PME")
+                                Else
+                                    pme = 0
+                                End If
+                                existencias = voiddeleter(lector("Existencias"))
 
-                If Not DBNull.Value.Equals(lector("PME")) Then
-                    pme = lector("PME")
-                Else
-                    pme = 0
-                End If
-                existencias = voiddeleter(lector("Existencias"))
+                                If Not DBNull.Value.Equals(lector("paquete")) Then
+                                    pq = lector("paquete")
+                                Else
+                                    pq = "PZA"
+                                End If
+                                If Not DBNull.Value.Equals(lector("Cbarra")) Then
+                                    cbarra = lector("Cbarra")
+                                Else
+                                    cbarra = ""
+                                End If
+                                If Not DBNull.Value.Equals(lector("pgmay")) Then
+                                    pgmay = lector("pgmay")
+                                Else
+                                    pgmay = 0
+                                End If
+                                If Not DBNull.Value.Equals(lector("pgmen")) Then
+                                    pgmen = lector("pgmen")
+                                Else
+                                    pgmen = 0
+                                End If
 
-                If Not DBNull.Value.Equals(lector("paquete")) Then
-                    pq = lector("paquete")
-                Else
-                    pq = "PZA"
-                End If
-                If Not DBNull.Value.Equals(lector("Cbarra")) Then
-                    cbarra = lector("Cbarra")
-                Else
-                    cbarra = ""
-                End If
-                If Not DBNull.Value.Equals(lector("pgmay")) Then
-                    pgmay = lector("pgmay")
-                Else
-                    pgmay = 0
-                End If
-                If Not DBNull.Value.Equals(lector("pgmen")) Then
-
-                    pgmen = lector("pgmen")
-                Else
-                    pgmen = 0
-                End If
-
-                tipo = lector("tipo")
-                fum = lector("fum")
-                If Not DBNull.Value.Equals(lector("stock")) Then
-                    stock = lector("stock")
-                Else
-                    stock = 0
-                End If
-                einf = lector("einf")
-                found = True
-                If Not DBNull.Value.Equals(lector("notas")) Then
-                    notas = lector("notas")
-                Else
-                    notas = ""
-                End If
-                If Not DBNull.Value.Equals(lector("tags")) Then
-                    tag = lector("tags")
-                Else
-                    tag = ""
-                End If
-            End While
-            lector.Close()
-
-
-
+                                tipo = voiddeleterstring(lector("tipo"))
+                                fum = lector("fum")
+                                If Not DBNull.Value.Equals(lector("stock")) Then
+                                    stock = lector("stock")
+                                Else
+                                    stock = 0
+                                End If
+                                einf = lector("einf")
+                                found = True
+                                If Not DBNull.Value.Equals(lector("notas")) Then
+                                    notas = lector("notas")
+                                Else
+                                    notas = ""
+                                End If
+                                If Not DBNull.Value.Equals(lector("tags")) Then
+                                    tag = lector("tags")
+                                Else
+                                    tag = ""
+                                End If
+                            End While
+                        End Using
+                    End Using
+                End SyncLock
+            Catch ex As Exception
+                LogAppError(ex, "articuloventa.load")
+            End Try
         End Sub
 
 
@@ -1662,6 +1663,11 @@ Public Module Estructuras
                     setexistencias(cantidad)
                 End If
 
+                Try
+                    autocompletarart()
+                Catch
+                End Try
+
                 notifier.cambiodeexistencias(clave)
             Catch ex As Exception
                 LogAppError(ex, "Estructuras.updateartthread")
@@ -1714,6 +1720,10 @@ Public Module Estructuras
                     Catch
                     End Try
                 End If
+                Try
+                    autocompletarart()
+                Catch
+                End Try
             Catch ex As Exception
                 LogAppError(ex, "Estructuras.deletemetrhead")
             End Try

@@ -255,92 +255,39 @@ Public Module bases
         Return str
     End Function
     Public Function sart(ByVal sts As String, Optional exact As Boolean = False) As articuloventa
-        'Dim orden As OleDb.OleDbCommand
-        'Dim lector As OleDb.OleDbDataReader
-        'Dim notreg As Boolean = False
-        'Dim tnot As Integer = 0
-        'Dim st As String = ""
-        'Dim cant As Decimal
-        'sart = New articuloventa
-        'With sart
-        '    If sts.IndexOf(":") Then
-        '        Dim std() As String = sts.Split(":")
-        '        st = std(0)
-        '    Else
-        '        st = sts
-        '    End If
-        '    Dim stp As String = st.ToUpper
-        '    sart.found = False
-        '    artnot.Close()
-        '    If stp = "ARTÍCULO NO REGISTRADO" Or stp = "ARNORE" Or stp = "ARTICULO NO REGISTRADO" Then
-        '        notreg = True
-        '        artnot.loaderart()
-        '        tnot = 1
-        '    ElseIf stp = "TRNORE" Or stp = "TRABAJO NO REGISTRADO" Then
-        '        notreg = True
-        '        artnot.loadertra()
-        '        tnot = 2
-        '    End If
+        If String.IsNullOrWhiteSpace(sts) Then
+            Return New articuloventa()
+        End If
 
-        '    If Not notreg Then
-        '        Dim sttemp As String = ""
-        '        Dim st2 As String = ""
-        '        If Not st.Contains(" ") Or exact Then
-        '            st2 = "SELECT * FROM articulos WHERE clave='" & st & "' OR cbarra='" & st & "' AND Del=False"
+        Dim stLookup As String = sts.Trim()
 
-        '            orden = New OleDb.OleDbCommand(st2, conart)
-        '            lector = orden.ExecuteReader
-        '            If lector.HasRows Then
-        '                copylectortoart(lector, sart)
-        '                lector.Close()
-        '                Exit Function
-        '            End If
-        '            lector.Close()
-        '            sttemp = "Or descripción Like '%" & st & "%'"
-        '        Else
-        '            Dim stcut() As String = st.Split(" ")
-        '            For i = 0 To stcut.Count - 1
-        '                sttemp &= " Or descripción Like '%" & stcut(i) & "%'"
-        '            Next
-        '        End If
-        '        st2 = "SELECT * FROM articulos WHERE clave LIKE '" & st & "%' " & sttemp & " AND Del=FALSE ORDER BY descripción"
-        '        orden = New OleDb.OleDbCommand(st2, conart)
-        '        lector = orden.ExecuteReader
-        '        If lector.HasRows Then
-        '            cant = copylectortoart(lector, sart)
-        '            If cant > 1 And Not exact Then
-        '                sart = catar.loadcatadialog(sts)
-        '            End If
-        '        End If
+        ' Si proviene de autocompletar con formato "Clave:Descripción" o "Descripción:Clave"
+        If stLookup.Contains(":"c) Then
+            Dim parts() As String = stLookup.Split(":"c)
+            If parts.Length >= 2 Then
+                ' 1. Probar la primera parte como clave (formato Clave:Descripción)
+                Dim artCandidate As New articuloventa(parts(0).Trim())
+                If artCandidate.found Then
+                    Return artCandidate
+                End If
 
-        '    Else
-        '        If artnot.ShowDialog() = DialogResult.OK Then
-        '            Select Case tnot
-        '                Case 1
-        '                    .clave = "ARNORE"
-        '                    .einf = True
-        '                    .tipo = "Articulo"
-
-        '                Case 2
-        '                    .clave = "TRNORE"
-        '                    .einf = False
-        '                    .tipo = "Trabajo"
-        '            End Select
-        '            .found = True
-
-        '        End If
-        '    End If
-        'End With
-
-        sart = New articuloventa(sts)
-        If Not sart.found Then
-            sart = catar.loadcatadialog(sts)
-            If catar.DialogResult = DialogResult.Cancel Then
-                sart.found = False
-                sart = New articuloventa
-
+                ' 2. Probar la última parte como clave (formato Descripción:Clave)
+                artCandidate = New articuloventa(parts(parts.Length - 1).Trim())
+                If artCandidate.found Then
+                    Return artCandidate
+                End If
             End If
         End If
+
+        sart = New articuloventa(stLookup)
+        If Not sart.found Then
+            sart = catar.loadcatadialog(stLookup)
+            If catar.DialogResult = DialogResult.Cancel Then
+                sart.found = False
+                sart = New articuloventa()
+            End If
+        End If
+        Return sart
     End Function
     Public Function copylectortoart(ByRef lector As OleDb.OleDbDataReader, ByRef art As articuloventa) As Integer
         With art
@@ -1135,46 +1082,98 @@ Public Module bases
 
     Public Sub removeautcompletar(st As String)
         ''se utiliza para quitar los articulos que se hacen 0 al momento de la venta
-        Dim sts() As String = st.Split(":")
-        asd.Remove(st)
-        asd.Remove(sts(1))
-        asm.Remove(sts(0))
+        Try
+            If String.IsNullOrEmpty(st) Then Exit Sub
+            asd.Remove(st)
+            If st.Contains(":"c) Then
+                Dim sts() As String = st.Split(":"c)
+                If sts.Length > 0 Then asm.Remove(sts(0))
+                If sts.Length > 1 Then
+                    asd.Remove(sts(1))
+                    asd.Remove(sts(1) & ":" & sts(0))
+                End If
+            Else
+                asm.Remove(st)
+            End If
+        Catch ex As Exception
+            LogAppError(ex, "basesmod.removeautcompletar")
+        End Try
     End Sub
 
     Public Sub autocompletarart() 'Inicialización Autocompletar de articulos
-        'asd.Clear()
-        'asm.Clear()
-        'asda.Clear()
-        'asma.Clear()
-        'orden = New OleDb.OleDbCommand("SELECT Descripción, Clave,einf,Existencias FROM Articulos", conart)
-        'lector = orden.ExecuteReader
-        'While lector.Read
-        '    Try
-        '        asda.Add(lector("Descripción"))
-        '        asma.Add(lector("Clave"))
+        Try
+            Dim listAsd As New List(Of String)()
+            Dim listAsm As New List(Of String)()
+            Dim listAsda As New List(Of String)()
+            Dim listAsma As New List(Of String)()
 
-        '        If Not DBNull.Value.Equals(lector("Existencias")) Then
-        '            If Val(lector("Existencias")) > 0 Or lector("einf") Then
-        '                asd.Add(lector("Clave") & ":" & lector("Descripción"))
-        '                asm.Add(lector("Clave"))
-        '            End If
-        '        End If
+            SyncLock conart
+                Using cmd As New OleDb.OleDbCommand("SELECT Descripción, Clave, einf, Existencias FROM Articulos WHERE Del = False OR Del IS NULL", conart)
+                    Using rdr As OleDb.OleDbDataReader = cmd.ExecuteReader()
+                        While rdr.Read()
+                            Try
+                                Dim claveVal As String = voiddeleterstring(rdr("Clave"))
+                                Dim descVal As String = voiddeleterstring(rdr("Descripción"))
 
-        '    Catch ex As Exception
+                                If Not String.IsNullOrEmpty(claveVal) Then
+                                    listAsma.Add(claveVal)
+                                End If
+                                If Not String.IsNullOrEmpty(descVal) Then
+                                    listAsda.Add(descVal)
+                                End If
 
-        '    End Try
+                                Dim hasStock As Boolean = False
+                                If Not DBNull.Value.Equals(rdr("Existencias")) AndAlso Val(rdr("Existencias")) > 0 Then
+                                    hasStock = True
+                                End If
+                                Dim isEinf As Boolean = False
+                                If Not DBNull.Value.Equals(rdr("einf")) AndAlso CBool(rdr("einf")) = True Then
+                                    isEinf = True
+                                End If
 
-        'End While
-        'lector.Close()
-        'asd.Add("ARNORE:ARTÍCULO NO REGISTRADO")
-        'asd.Add("TRNORE:TRABAJO NO REGISTRADO")
-        'asda.Add("ARNORE:ARTÍCULO NO REGISTRADO")
-        'asda.Add("TRNORE:TRABAJO NO REGISTRADO")
-        'asm.Add("ARNORE")
-        'asm.Add("TRNORE")
-        'asma.Add("ARNORE")
-        'asma.Add("TRNORE")
+                                If hasStock OrElse isEinf Then
+                                    If Not String.IsNullOrEmpty(claveVal) AndAlso Not String.IsNullOrEmpty(descVal) Then
+                                        listAsd.Add(claveVal & ":" & descVal)
+                                        listAsd.Add(descVal & ":" & claveVal)
+                                    ElseIf Not String.IsNullOrEmpty(claveVal) Then
+                                        listAsd.Add(claveVal)
+                                    End If
+                                    If Not String.IsNullOrEmpty(claveVal) Then
+                                        listAsm.Add(claveVal)
+                                    End If
+                                End If
+                            Catch
+                            End Try
+                        End While
+                    End Using
+                End Using
+            End SyncLock
 
+            ' Tokens de artículos y trabajos no registrados
+            listAsd.Add("ARNORE:ARTÍCULO NO REGISTRADO")
+            listAsd.Add("TRNORE:TRABAJO NO REGISTRADO")
+            listAsda.Add("ARNORE:ARTÍCULO NO REGISTRADO")
+            listAsda.Add("TRNORE:TRABAJO NO REGISTRADO")
+            listAsm.Add("ARNORE")
+            listAsm.Add("TRNORE")
+            listAsma.Add("ARNORE")
+            listAsma.Add("TRNORE")
+
+            ' Asignación en lote con AddRange (ultrarrápido y atómico)
+            asd.Clear()
+            asd.AddRange(listAsd.ToArray())
+
+            asm.Clear()
+            asm.AddRange(listAsm.ToArray())
+
+            asda.Clear()
+            asda.AddRange(listAsda.ToArray())
+
+            asma.Clear()
+            asma.AddRange(listAsma.ToArray())
+        Catch ex As Exception
+            LogAppError(ex, "basesmod.autocompletarart")
+        End Try
     End Sub
 
     ''Busca en el catalogo

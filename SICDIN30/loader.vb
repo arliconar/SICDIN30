@@ -27,6 +27,12 @@ Public Class loader
             End Try
 
             Try
+                autocompletarart()
+            Catch ex As Exception
+                LogAppError(ex, "loader.autocompletarart")
+            End Try
+
+            Try
                 If System.IO.File.Exists("C:\sc3\resources\icono1.ico") Then
                     icono = New Icon("C:\sc3\resources\icono1.ico")
                 End If
