@@ -41,6 +41,14 @@ Public Class pagof
         dgpago("cantidad", 0).Value = total
         ntventa.pago.total = total
         ntventa.pago.adeudo = 0
+        Me.ClientSize = New Size(1150, 520)
+        dgpanel.Visible = True
+        asc.Visible = True
+        bnota.Visible = True
+        iva.Visible = True
+        bticket.Visible = True
+        imagen.Visible = True
+        nombrec.Location = New Point(CInt((Me.ClientSize.Width / 2) - (nombrec.Size.Width / 2)), 4)
         If Me.ShowDialog = DialogResult.OK Then
             ntventa.pago.loadfromdg(dgpago, False, total)
         End If
@@ -95,13 +103,23 @@ Public Class pagof
         cambio = 0
         nombrec.Text = "Cliente " & clnt.Nombre
         If Not showdg Then
-            Me.Size = New Size(450, 500)
-
+            Me.ClientSize = New Size(450, 520)
+            dgpanel.Visible = False
+            asc.Visible = False
+            bnota.Visible = False
+            iva.Visible = False
+            bticket.Visible = False
+            imagen.Visible = False
         Else
-            Me.Size = New Size(1150, 500)
-
+            Me.ClientSize = New Size(1150, 520)
+            dgpanel.Visible = True
+            asc.Visible = True
+            bnota.Visible = True
+            iva.Visible = True
+            bticket.Visible = True
+            imagen.Visible = True
         End If
-        nombrec.Location = New Point((Me.Size.Width / 2) - (nombrec.Size.Width) / 2, 0)
+        nombrec.Location = New Point(CInt((Me.ClientSize.Width / 2) - (nombrec.Size.Width / 2)), 4)
 
         loadprint(ntventa.articulos)
         If ntventa.cotizacion Then
@@ -140,7 +158,14 @@ Public Class pagof
         resta = 0
         cambio = 0
         nombrec.Text = "Mostrador"
-        nombrec.Location = New Point((Me.Size.Width / 2) - (nombrec.Size.Width) / 2, 0)
+        Me.ClientSize = New Size(1150, 520)
+        dgpanel.Visible = True
+        asc.Visible = True
+        bnota.Visible = True
+        iva.Visible = True
+        bticket.Visible = True
+        imagen.Visible = True
+        nombrec.Location = New Point(CInt((Me.ClientSize.Width / 2) - (nombrec.Size.Width / 2)), 4)
 
     End Sub
     Public Function loadpagoadeudo(clnts As Cliente) As DialogResult
@@ -171,7 +196,14 @@ Public Class pagof
         ntventa.pago.pagado = total
         ntventa.pago.efectivo = total
         ntventa.total = total
+        Me.ClientSize = New Size(1150, 520)
+        dgpanel.Visible = True
+        asc.Visible = True
+        bnota.Visible = True
+        iva.Visible = True
         bticket.Visible = False
+        imagen.Visible = True
+        nombrec.Location = New Point(CInt((Me.ClientSize.Width / 2) - (nombrec.Size.Width / 2)), 4)
         dgpago.Focus()
         loadpagoadeudo = DialogResult.Cancel
 

@@ -1,4 +1,4 @@
-﻿<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()>
+<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()>
 Partial Class pagof
     Inherits System.Windows.Forms.Form
 
@@ -238,7 +238,7 @@ Partial Class pagof
         Me.dgpanel.Location = New System.Drawing.Point(433, 32)
         Me.dgpanel.Margin = New System.Windows.Forms.Padding(2)
         Me.dgpanel.Name = "dgpanel"
-        Me.dgpanel.Size = New System.Drawing.Size(606, 383)
+        Me.dgpanel.Size = New System.Drawing.Size(687, 395)
         Me.dgpanel.TabIndex = 15
         '
         'dgl
@@ -347,7 +347,9 @@ Partial Class pagof
         Me.Button1.UseVisualStyleBackColor = False
         '
         'imagen
+        'imagen
         '
+        Me.imagen.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.imagen.BackColor = System.Drawing.Color.FromArgb(CType(CType(0, Byte), Integer), CType(CType(92, Byte), Integer), CType(CType(133, Byte), Integer))
         Me.imagen.BackgroundImage = Global.SICDIN30.My.Resources.Resources.image
         Me.imagen.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom
@@ -355,7 +357,7 @@ Partial Class pagof
         Me.imagen.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.imagen.Font = New System.Drawing.Font("Microsoft Sans Serif", 7.8!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.imagen.ForeColor = System.Drawing.Color.Black
-        Me.imagen.Location = New System.Drawing.Point(814, 417)
+        Me.imagen.Location = New System.Drawing.Point(1010, 445)
         Me.imagen.Margin = New System.Windows.Forms.Padding(2)
         Me.imagen.Name = "imagen"
         Me.imagen.Size = New System.Drawing.Size(85, 40)
@@ -365,6 +367,7 @@ Partial Class pagof
         '
         'iva
         '
+        Me.iva.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.iva.BackColor = System.Drawing.Color.FromArgb(CType(CType(0, Byte), Integer), CType(CType(92, Byte), Integer), CType(CType(133, Byte), Integer))
         Me.iva.BackgroundImage = Global.SICDIN30.My.Resources.Resources.ivono
         Me.iva.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom
@@ -372,7 +375,7 @@ Partial Class pagof
         Me.iva.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.iva.Font = New System.Drawing.Font("Microsoft Sans Serif", 7.8!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.iva.ForeColor = System.Drawing.Color.Black
-        Me.iva.Location = New System.Drawing.Point(632, 417)
+        Me.iva.Location = New System.Drawing.Point(780, 445)
         Me.iva.Margin = New System.Windows.Forms.Padding(2)
         Me.iva.Name = "iva"
         Me.iva.Size = New System.Drawing.Size(85, 40)
@@ -382,6 +385,7 @@ Partial Class pagof
         '
         'bticket
         '
+        Me.bticket.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.bticket.BackColor = System.Drawing.Color.FromArgb(CType(CType(0, Byte), Integer), CType(CType(92, Byte), Integer), CType(CType(133, Byte), Integer))
         Me.bticket.BackgroundImage = Global.SICDIN30.My.Resources.Resources.receipt_106581
         Me.bticket.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom
@@ -389,7 +393,7 @@ Partial Class pagof
         Me.bticket.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.bticket.Font = New System.Drawing.Font("Microsoft Sans Serif", 7.8!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.bticket.ForeColor = System.Drawing.Color.Black
-        Me.bticket.Location = New System.Drawing.Point(725, 417)
+        Me.bticket.Location = New System.Drawing.Point(895, 445)
         Me.bticket.Margin = New System.Windows.Forms.Padding(2)
         Me.bticket.Name = "bticket"
         Me.bticket.Size = New System.Drawing.Size(85, 40)
@@ -399,6 +403,7 @@ Partial Class pagof
         '
         'bnota
         '
+        Me.bnota.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.bnota.BackColor = System.Drawing.Color.FromArgb(CType(CType(0, Byte), Integer), CType(CType(92, Byte), Integer), CType(CType(133, Byte), Integer))
         Me.bnota.BackgroundImage = Global.SICDIN30.My.Resources.Resources.printer_icon_icons_com_52926
         Me.bnota.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom
@@ -406,7 +411,7 @@ Partial Class pagof
         Me.bnota.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.bnota.Font = New System.Drawing.Font("Microsoft Sans Serif", 7.8!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.bnota.ForeColor = System.Drawing.Color.Black
-        Me.bnota.Location = New System.Drawing.Point(535, 417)
+        Me.bnota.Location = New System.Drawing.Point(665, 445)
         Me.bnota.Margin = New System.Windows.Forms.Padding(2)
         Me.bnota.Name = "bnota"
         Me.bnota.Size = New System.Drawing.Size(85, 40)
@@ -416,7 +421,8 @@ Partial Class pagof
         '
         'asc
         '
-        Me.asc.AutoSize = True
+        Me.asc.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+        Me.asc.AutoSize = False
         Me.asc.BackColor = System.Drawing.Color.FromArgb(CType(CType(0, Byte), Integer), CType(CType(92, Byte), Integer), CType(CType(133, Byte), Integer))
         Me.asc.BackgroundImage = Global.SICDIN30.My.Resources.Resources.uparrow_arriba_1538
         Me.asc.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom
@@ -424,7 +430,7 @@ Partial Class pagof
         Me.asc.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.asc.Font = New System.Drawing.Font("Microsoft Sans Serif", 7.8!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.asc.ForeColor = System.Drawing.Color.Black
-        Me.asc.Location = New System.Drawing.Point(433, 417)
+        Me.asc.Location = New System.Drawing.Point(550, 445)
         Me.asc.Margin = New System.Windows.Forms.Padding(2)
         Me.asc.Name = "asc"
         Me.asc.Size = New System.Drawing.Size(85, 40)
@@ -454,6 +460,7 @@ Partial Class pagof
         '
         'Cancel
         '
+        Me.Cancel.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.Cancel.BackColor = System.Drawing.Color.FromArgb(CType(CType(0, Byte), Integer), CType(CType(92, Byte), Integer), CType(CType(133, Byte), Integer))
         Me.Cancel.BackgroundImage = Global.SICDIN30.My.Resources.Resources.cancel_77947
         Me.Cancel.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom
@@ -462,7 +469,7 @@ Partial Class pagof
         Me.Cancel.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.Cancel.Font = New System.Drawing.Font("Microsoft Sans Serif", 7.8!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.Cancel.ForeColor = System.Drawing.Color.Black
-        Me.Cancel.Location = New System.Drawing.Point(235, 417)
+        Me.Cancel.Location = New System.Drawing.Point(235, 445)
         Me.Cancel.Margin = New System.Windows.Forms.Padding(2)
         Me.Cancel.Name = "Cancel"
         Me.Cancel.Size = New System.Drawing.Size(85, 40)
@@ -472,6 +479,7 @@ Partial Class pagof
         '
         'Aceptar
         '
+        Me.Aceptar.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.Aceptar.BackColor = System.Drawing.Color.FromArgb(CType(CType(0, Byte), Integer), CType(CType(92, Byte), Integer), CType(CType(133, Byte), Integer))
         Me.Aceptar.BackgroundImage = Global.SICDIN30.My.Resources.Resources.vcsnormal_93488
         Me.Aceptar.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom
@@ -480,7 +488,7 @@ Partial Class pagof
         Me.Aceptar.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.Aceptar.Font = New System.Drawing.Font("Microsoft Sans Serif", 7.8!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.Aceptar.ForeColor = System.Drawing.Color.Black
-        Me.Aceptar.Location = New System.Drawing.Point(84, 417)
+        Me.Aceptar.Location = New System.Drawing.Point(84, 445)
         Me.Aceptar.Margin = New System.Windows.Forms.Padding(2)
         Me.Aceptar.Name = "Aceptar"
         Me.Aceptar.Size = New System.Drawing.Size(85, 40)
@@ -493,7 +501,7 @@ Partial Class pagof
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.SystemColors.InactiveCaption
-        Me.ClientSize = New System.Drawing.Size(907, 483)
+        Me.ClientSize = New System.Drawing.Size(1150, 520)
         Me.ControlBox = False
         Me.Controls.Add(Me.Button1)
         Me.Controls.Add(Me.Label6)

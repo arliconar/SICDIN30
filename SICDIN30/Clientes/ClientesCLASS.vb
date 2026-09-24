@@ -120,10 +120,11 @@ Public Class Cliente
         clear()
         Nombre = "Mostrador"
     End Sub
-    Public Sub New(Optional id As Integer = 1)
+    Public Sub New(Optional id As Integer = -1)
         ultmod = Now
-        loadclnt(id)
-
+        If id >= 0 Then
+            loadclnt(id)
+        End If
     End Sub
     Public Sub loadclntidst(ids As String)
         Dim st() As String = ids.Split(":")
@@ -146,6 +147,9 @@ Public Class Cliente
     End Sub
 
     Public Sub loadclnt(ids As Integer)
+        If ids < 0 OrElse conclnt Is Nothing OrElse conclnt.State <> ConnectionState.Open Then
+            Exit Sub
+        End If
         Dim st As String = "SELECT * FROM client WHERE Id=" & ids
         Dim ordenc As OleDb.OleDbCommand = New OleDb.OleDbCommand(st, conclnt)
         Dim lectorc As OleDb.OleDbDataReader = ordenc.ExecuteReader

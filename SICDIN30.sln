@@ -5,6 +5,10 @@ VisualStudioVersion = 16.0.30611.23
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "SICIDIN", "SICDIN30\SICIDIN.vbproj", "{DC2F167B-F92E-4AAD-8B49-5875C1657531}"
 EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "SICDIN30.Tests", "SICDIN30.Tests\SICDIN30.Tests.vbproj", "{6155CB56-2226-43C1-911B-634ABE76A4A6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SICDIN30", "SICDIN30", "{4800E654-A924-7EA9-868F-F01B9422A8E1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +31,18 @@ Global
 		{DC2F167B-F92E-4AAD-8B49-5875C1657531}.Release|x64.Build.0 = Release|x64
 		{DC2F167B-F92E-4AAD-8B49-5875C1657531}.Release|x86.ActiveCfg = Release|x86
 		{DC2F167B-F92E-4AAD-8B49-5875C1657531}.Release|x86.Build.0 = Release|x86
+		{6155CB56-2226-43C1-911B-634ABE76A4A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6155CB56-2226-43C1-911B-634ABE76A4A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6155CB56-2226-43C1-911B-634ABE76A4A6}.Debug|x64.ActiveCfg = Debug|x64
+		{6155CB56-2226-43C1-911B-634ABE76A4A6}.Debug|x64.Build.0 = Debug|x64
+		{6155CB56-2226-43C1-911B-634ABE76A4A6}.Debug|x86.ActiveCfg = Debug|x86
+		{6155CB56-2226-43C1-911B-634ABE76A4A6}.Debug|x86.Build.0 = Debug|x86
+		{6155CB56-2226-43C1-911B-634ABE76A4A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6155CB56-2226-43C1-911B-634ABE76A4A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6155CB56-2226-43C1-911B-634ABE76A4A6}.Release|x64.ActiveCfg = Release|x64
+		{6155CB56-2226-43C1-911B-634ABE76A4A6}.Release|x64.Build.0 = Release|x64
+		{6155CB56-2226-43C1-911B-634ABE76A4A6}.Release|x86.ActiveCfg = Release|x86
+		{6155CB56-2226-43C1-911B-634ABE76A4A6}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
