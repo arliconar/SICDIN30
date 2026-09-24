@@ -7,7 +7,7 @@ Imports System.Collections.Generic
 Imports Newtonsoft.Json
 Imports Newtonsoft.Json.Linq
 
-Module nube
+Public Module nube
 
     Private ReadOnly syncMutex As New Object()
     Private ReadOnly logMutex As New Object()

@@ -1,5 +1,5 @@
-﻿Imports Microsoft.VisualBasic.CompilerServices
-Module variables
+Imports Microsoft.VisualBasic.CompilerServices
+Public Module variables
     Public trdef As Integer = 1
     Public tienda As lugar
     Public artmodified As Date
