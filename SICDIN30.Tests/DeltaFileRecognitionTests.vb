@@ -237,4 +237,59 @@ Public Class DeltaFileRecognitionTests
         End Try
     End Sub
 
+    <TestMethod>
+    Public Sub Test_LectorBaseCloud_ConsumesAndDeletesFromPersonalInbox()
+        ' 1. Arrange: Simular la llegada de un delta en el buzón personal de la tienda activa (tienda_al)
+        Dim myInbox As String = nube.GetMyInboxPath()
+        Dim remoteFilename As String = "cl_ART_inbox_" & Guid.NewGuid().ToString("N").Substring(0, 6) & ".json"
+        Dim inboxFilePath As String = Path.Combine(myInbox, remoteFilename)
+
+        Dim packet As New Dictionary(Of String, Object)()
+        packet("version") = 1
+        packet("id") = Guid.NewGuid().ToString("N")
+        packet("origin") = "cl"
+        packet("timestamp") = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+        packet("entity") = "ARTICULO"
+        packet("action") = "UPSERT"
+
+        Dim data As New Dictionary(Of String, Object)()
+        data("clave") = "ART_INBOX_TEST_001"
+        data("descripcion") = "Articulo en Buzon"
+        data("menudeo") = 250.0D
+        data("fum") = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+        packet("data") = data
+
+        File.WriteAllText(inboxFilePath, JsonConvert.SerializeObject(packet), System.Text.Encoding.UTF8)
+        Assert.IsTrue(File.Exists(inboxFilePath), "El archivo delta debe existir en el buzón personal antes del procesamiento.")
+
+        ' 2. Act: Ejecutar lectorbasecloud
+        nube.lectorbasecloud()
+
+        ' 3. Assert: El archivo DEBE haber sido eliminado del buzón tras ser procesado
+        Assert.IsFalse(File.Exists(inboxFilePath), "El archivo delta en el buzón personal debe haber sido eliminado automáticamente tras ser procesado.")
+
+        ' Verificar que sí fue registrado como procesado
+        Dim processedLines As String() = If(File.Exists(testProcessedLog), File.ReadAllLines(testProcessedLog), Array.Empty(Of String)())
+        Dim fueProcesado As Boolean = False
+        For Each line In processedLines
+            If line.Trim().Equals(remoteFilename, StringComparison.OrdinalIgnoreCase) Then
+                fueProcesado = True
+                Exit For
+            End If
+        Next
+        Assert.IsTrue(fueProcesado, "El archivo procesado desde el buzón debe figurar en sync_processed.txt.")
+
+        ' Limpiar base
+        Try
+            Dim cs As String = nube.GetOleDbConnectionString("C:\sc3\art.dat", "sganeo4")
+            Using conn As New OleDbConnection(cs)
+                conn.Open()
+                Using cmd As New OleDbCommand("DELETE FROM Articulos WHERE Clave = 'ART_INBOX_TEST_001'", conn)
+                    cmd.ExecuteNonQuery()
+                End Using
+            End Using
+        Catch
+        End Try
+    End Sub
+
 End Class

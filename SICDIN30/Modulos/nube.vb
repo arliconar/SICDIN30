@@ -99,6 +99,83 @@ Public Module nube
     End Function
 
     ''' <summary>
+    ''' Ruta base de buzones individuales en la nube.
+    ''' </summary>
+    Public Function GetInboxesBasePath() As String
+        Dim basePath As String = Path.Combine(GetCloudDeltasPath(), "inboxes")
+        Try
+            If Not Directory.Exists(basePath) Then Directory.CreateDirectory(basePath)
+        Catch ex As Exception
+            SyncLog("No se pudo crear carpeta de buzones: " & basePath & " (" & ex.Message & ")", True)
+        End Try
+        Return basePath
+    End Function
+
+    ''' <summary>
+    ''' Ruta del buzón de una tienda específica en la nube.
+    ''' </summary>
+    Public Function GetStoreInboxPath(storeApodo As String) As String
+        Dim cleanApodo As String = If(String.IsNullOrWhiteSpace(storeApodo), "local", storeApodo.Trim().ToLower())
+        Dim p As String = Path.Combine(GetInboxesBasePath(), cleanApodo)
+        Try
+            If Not Directory.Exists(p) Then Directory.CreateDirectory(p)
+        Catch
+        End Try
+        Return p
+    End Function
+
+    ''' <summary>
+    ''' Ruta del buzón de la tienda actual en la nube.
+    ''' </summary>
+    Public Function GetMyInboxPath() As String
+        Dim myApodo As String = If(tienda IsNot Nothing AndAlso Not String.IsNullOrEmpty(tienda.apodo), tienda.apodo.Trim().ToLower(), "local")
+        Return GetStoreInboxPath(myApodo)
+    End Function
+
+    ''' <summary>
+    ''' Obtiene la lista de apodos de todas las tiendas de destino registradas (omitiendo la tienda actual).
+    ''' </summary>
+    Public Function GetDestinationStoreApodos() As List(Of String)
+        Dim list As New List(Of String)()
+        Dim myApodo As String = If(tienda IsNot Nothing AndAlso Not String.IsNullOrEmpty(tienda.apodo), tienda.apodo.Trim().ToLower(), "")
+
+        ' 1. Intentar consultar la tabla Lugares en syste.dat
+        Try
+            Dim cs As String = GetOleDbConnectionString("C:\sc3\syste.dat", "sganeo4")
+            Using conn As New OleDbConnection(cs)
+                conn.Open()
+                Using cmd As New OleDbCommand("SELECT apodo FROM Lugares WHERE apodo IS NOT NULL", conn)
+                    Using rdr = cmd.ExecuteReader()
+                        While rdr.Read()
+                            Dim ap As String = rdr("apodo").ToString().Trim().ToLower()
+                            If Not String.IsNullOrEmpty(ap) AndAlso ap <> myApodo AndAlso Not list.Contains(ap) Then
+                                list.Add(ap)
+                            End If
+                        End While
+                    End Using
+                End Using
+            End Using
+        Catch
+        End Try
+
+        ' 2. Si existen subcarpetas en inboxes/ que representen otras tiendas conocidas, también incluirlas
+        Try
+            Dim inboxesBase As String = GetInboxesBasePath()
+            If Directory.Exists(inboxesBase) Then
+                For Each folderPath In Directory.GetDirectories(inboxesBase)
+                    Dim dirName As String = Path.GetFileName(folderPath).Trim().ToLower()
+                    If Not String.IsNullOrEmpty(dirName) AndAlso dirName <> myApodo AndAlso Not list.Contains(dirName) Then
+                        list.Add(dirName)
+                    End If
+                Next
+            End If
+        Catch
+        End Try
+
+        Return list
+    End Function
+
+    ''' <summary>
     ''' Copia de seguridad de bases locales en la ruta de respaldo (al cerrar la app).
     ''' </summary>
     Private Sub SafeUpdateLoadscreen(stepText As String)
@@ -311,7 +388,7 @@ Public Module nube
     End Sub
 
     ''' <summary>
-    ''' Empuja todos los archivos acumulados en el outbox local hacia la carpeta de deltas en la nube.
+    ''' Empuja todos los archivos acumulados en el outbox local hacia los buzones de las tiendas destino en la nube.
     ''' </summary>
     Public Sub PushOutbox()
         Try
@@ -319,23 +396,41 @@ Public Module nube
             Dim files As String() = Directory.GetFiles(outboxDir, "*.json")
             If files.Length = 0 Then Exit Sub
 
-            Dim cloudDir As String = GetCloudDeltasPath()
-            If Not Directory.Exists(cloudDir) Then Exit Sub
-
+            Dim destStores As List(Of String) = GetDestinationStoreApodos()
             Dim enviados As Integer = 0
+
             For Each f In files
                 Try
-                    Dim dest As String = Path.Combine(cloudDir, Path.GetFileName(f))
-                    File.Copy(f, dest, True)
-                    File.Delete(f)
-                    enviados += 1
+                    Dim fname As String = Path.GetFileName(f)
+                    Dim copiadoConExito As Boolean = False
+
+                    If destStores.Count > 0 Then
+                        For Each destApodo In destStores
+                            Dim destInbox As String = GetStoreInboxPath(destApodo)
+                            Dim destFile As String = Path.Combine(destInbox, fname)
+                            File.Copy(f, destFile, True)
+                            copiadoConExito = True
+                        Next
+                    Else
+                        ' Si no hay otras tiendas registradas (entorno de prueba o nodo aislado),
+                        ' depositar en la raíz de sync_deltas para no perder el delta
+                        Dim fallbackDir As String = GetCloudDeltasPath()
+                        Dim destFile As String = Path.Combine(fallbackDir, fname)
+                        File.Copy(f, destFile, True)
+                        copiadoConExito = True
+                    End If
+
+                    If copiadoConExito Then
+                        File.Delete(f)
+                        enviados += 1
+                    End If
                 Catch ex As Exception
                     ' Si OneDrive tiene bloqueado o sin red, quedará en outbox para el siguiente ciclo
                 End Try
             Next
 
             If enviados > 0 Then
-                SyncLog("Enviados con éxito " & enviados & " paquetes delta a la nube.")
+                SyncLog("Enviados con éxito " & enviados & " paquetes delta a los buzones de destino en la nube.")
             End If
         Catch ex As Exception
             SyncLog("Error en PushOutbox: " & ex.Message, True)
@@ -343,7 +438,8 @@ Public Module nube
     End Sub
 
     ''' <summary>
-    ''' Lee los deltas generados por otras sucursales desde la carpeta de la nube y los aplica localmente.
+    ''' Lee los deltas dirigidos a esta sucursal (desde su buzón inboxes/<mi_apodo>/ y de la raíz de nube),
+    ''' los aplica localmente y elimina automáticamente cada delta procesado de su buzón.
     ''' </summary>
     Public Sub lectorbasecloud(Optional fecha As Date = datedefault)
         If lectorbasebusy Then Exit Sub
@@ -358,13 +454,10 @@ Public Module nube
             ' 1. Intentar vaciar el outbox local por si hay paquetes pendientes
             PushOutbox()
 
-            Dim cloudDir As String = GetCloudDeltasPath()
-            If Not Directory.Exists(cloudDir) Then
-                SyncLog("Carpeta de nube no disponible o inaccesible: " & cloudDir, True)
-                Exit Sub
-            End If
+            Dim myInboxDir As String = GetMyInboxPath()
+            Dim legacyCloudDir As String = GetCloudDeltasPath()
 
-            ' 2. Cargar historial de deltas ya procesados
+            ' 2. Cargar historial de deltas ya procesados (salvaguarda de idempotencia)
             Dim logProcessed As String = GetProcessedLogPath()
             Dim processedSet As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
             If File.Exists(logProcessed) Then
@@ -377,12 +470,29 @@ Public Module nube
                 Next
             End If
 
-            ' 3. Buscar archivos JSON en la nube
-            Dim deltaFiles As String() = Directory.GetFiles(cloudDir, "*.json")
-            If deltaFiles.Length = 0 Then Exit Sub
+            ' 3. Reunir archivos a procesar:
+            ' Principal: Archivos en el buzón personal inboxes/<mi_apodo>/
+            ' Compatibilidad / Legado: Archivos sueltos en la raíz de sync_deltas
+            Dim filesToProcess As New List(Of String)()
+            Dim filesFromInbox As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
+
+            If Directory.Exists(myInboxDir) Then
+                For Each f In Directory.GetFiles(myInboxDir, "*.json")
+                    filesToProcess.Add(f)
+                    filesFromInbox.Add(f)
+                Next
+            End If
+
+            If Directory.Exists(legacyCloudDir) Then
+                For Each f In Directory.GetFiles(legacyCloudDir, "*.json")
+                    filesToProcess.Add(f)
+                Next
+            End If
+
+            If filesToProcess.Count = 0 Then Exit Sub
 
             ' Ordenar por nombre (que incluye timestamp)
-            Array.Sort(deltaFiles)
+            filesToProcess.Sort()
 
             Dim myApodo As String = If(tienda IsNot Nothing AndAlso Not String.IsNullOrEmpty(tienda.apodo), tienda.apodo.ToLower(), "local")
 
@@ -390,16 +500,24 @@ Public Module nube
             Dim nClntUpdated As Integer = 0
             Dim processedNew As New List(Of String)()
 
-            For Each archivo In deltaFiles
+            For Each archivo In filesToProcess
                 Dim fname As String = Path.GetFileName(archivo)
+                Dim isInboxFile As Boolean = filesFromInbox.Contains(archivo)
 
-                ' Ignorar si es de nuestra propia tienda para evitar bucles
-                If fname.ToLower().StartsWith(myApodo & "_") Then
+                ' En la raíz compartida ignorar si es de nuestra propia tienda para evitar bucles
+                If Not isInboxFile AndAlso fname.ToLower().StartsWith(myApodo & "_") Then
                     Continue For
                 End If
 
                 ' Ignorar si ya fue procesado con anterioridad
                 If processedSet.Contains(fname) Then
+                    ' Si está en nuestro buzón y ya había sido procesado, limpiarlo
+                    If isInboxFile Then
+                        Try
+                            File.Delete(archivo)
+                        Catch
+                        End Try
+                    End If
                     Continue For
                 End If
 
@@ -449,10 +567,29 @@ Public Module nube
                         processedSet.Add(fname)
                         processedNew.Add(fname)
                         SyncLog("Procesado paquete " & fname & " (Origen: " & origin & ", Entidad: " & entity & ")")
+
+                        ' Si el archivo proviene de nuestro buzón personal, ¡eliminarlo de inmediato!
+                        If isInboxFile Then
+                            Try
+                                File.Delete(archivo)
+                                SyncLog("Eliminado delta procesado del buzón personal: " & fname)
+                            Catch exDel As Exception
+                                SyncLog("No se pudo eliminar delta de buzón: " & fname & " (" & exDel.Message & ")", True)
+                            End Try
+                        End If
                     End If
 
                 Catch exFile As Exception
                     SyncLog("Error al procesar delta " & fname & ": " & exFile.Message, True)
+                    ' Si el archivo estaba dañado, registrarlo y removerlo de nuestro buzón para no trabar la cola
+                    processedSet.Add(fname)
+                    processedNew.Add(fname)
+                    If isInboxFile Then
+                        Try
+                            File.Delete(archivo)
+                        Catch
+                        End Try
+                    End If
                 End Try
             Next
 
@@ -771,8 +908,17 @@ Public Module nube
 
         Dim json As String = JsonConvert.SerializeObject(packet, Formatting.Indented)
         Dim fname As String = apodo & "_BATCH_" & DateTime.Now.ToString("yyyyMMdd_HHmmss") & "_" & batchIndex.ToString("D3") & ".json"
-        Dim targetPath As String = Path.Combine(cloudDir, fname)
-        File.WriteAllText(targetPath, json, Encoding.UTF8)
+
+        Dim destStores As List(Of String) = GetDestinationStoreApodos()
+        If destStores.Count > 0 Then
+            For Each dest In destStores
+                Dim destDir As String = GetStoreInboxPath(dest)
+                File.WriteAllText(Path.Combine(destDir, fname), json, Encoding.UTF8)
+            Next
+        Else
+            Dim targetPath As String = Path.Combine(cloudDir, fname)
+            File.WriteAllText(targetPath, json, Encoding.UTF8)
+        End If
     End Sub
 
     ' --- Funciones auxiliares de lectura segura de diccionarios ---

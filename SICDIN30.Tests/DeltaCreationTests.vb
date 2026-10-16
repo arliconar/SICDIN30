@@ -171,11 +171,32 @@ Public Class DeltaCreationTests
 
         nube.PushOutbox()
 
-        Dim cloudFile As String = Path.Combine(nube.GetCloudDeltasPath(), testFileName)
-        Assert.IsTrue(File.Exists(cloudFile), "El archivo delta debe haber sido transferido a la carpeta de la nube.")
-        Assert.IsFalse(File.Exists(localFile), "El archivo delta debe haberse eliminado del outbox local tras la transferencia exitosa.")
+        Dim destStores = nube.GetDestinationStoreApodos()
+        Dim foundInCloud As Boolean = False
+        If destStores.Count > 0 Then
+            For Each dest In destStores
+                Dim inboxFile As String = Path.Combine(nube.GetStoreInboxPath(dest), testFileName)
+                If File.Exists(inboxFile) Then
+                    foundInCloud = True
+                    Try
+                        File.Delete(inboxFile)
+                    Catch
+                    End Try
+                End If
+            Next
+        Else
+            Dim cloudFile As String = Path.Combine(nube.GetCloudDeltasPath(), testFileName)
+            If File.Exists(cloudFile) Then
+                foundInCloud = True
+                Try
+                    File.Delete(cloudFile)
+                Catch
+                End Try
+            End If
+        End If
 
-        If File.Exists(cloudFile) Then File.Delete(cloudFile)
+        Assert.IsTrue(foundInCloud, "El archivo delta debe haber sido transferido a los buzones de destino en la nube.")
+        Assert.IsFalse(File.Exists(localFile), "El archivo delta debe haberse eliminado del outbox local tras la transferencia exitosa.")
     End Sub
 
 End Class
