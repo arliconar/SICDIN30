@@ -1,0 +1,10 @@
+{
+  "name": "sicdin-modern",
+  "version": "1.0.0",
+  "description": "SICDIN Modern - Multiplatform POS (REST API + SQLite + WebApp)",
+  "scripts": {
+    "start:backend": "cd backend && npx tsx src/index.ts",
+    "start:frontend": "cd frontend && npm run dev",
+    "build:frontend": "cd frontend && npm run build"
+  }
+}

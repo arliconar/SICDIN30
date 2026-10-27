@@ -1,0 +1,21 @@
+{
+  "short_name": "SICDIN",
+  "name": "SICDIN 4.0 - Punto de Venta y Taller",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/logo.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#020617",
+  "theme_color": "#020617",
+  "display": "standalone",
+  "orientation": "any"
+}
