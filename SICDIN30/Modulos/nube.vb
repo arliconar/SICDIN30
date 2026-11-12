@@ -133,6 +133,98 @@ Public Module nube
     End Function
 
     ''' <summary>
+    ''' Identifica la tienda actual y todas las tiendas registradas en la base de datos (syste.dat / Lugares),
+    ''' y crea automáticamente las carpetas de buzón (inboxes/<apodo>/) en la nube si aún no existen.
+    ''' </summary>
+    Public Function EnsureCloudInboxesExist() As List(Of String)
+        Dim createdFolders As New List(Of String)()
+        Try
+            ' 1. Asegurar directorios locales básicos
+            Dim outboxDir As String = GetLocalOutboxPath()
+            If Not Directory.Exists(outboxDir) Then
+                Directory.CreateDirectory(outboxDir)
+                createdFolders.Add(outboxDir)
+            End If
+
+            ' 2. Si la tienda activa aún no está cargada en variables globales, cargarla desde syste.dat
+            If tienda Is Nothing OrElse String.IsNullOrEmpty(tienda.apodo) Then
+                Try
+                    Dim cs As String = GetOleDbConnectionString("C:\sc3\syste.dat", "sganeo4")
+                    Using conn As New OleDbConnection(cs)
+                        conn.Open()
+                        Using cmd As New OleDbCommand("SELECT Tienda, cloudpath FROM syste", conn)
+                            Using rdr = cmd.ExecuteReader()
+                                If rdr.Read() Then
+                                    Dim dbIdTi As Integer = Convert.ToInt32(rdr("Tienda"))
+                                    If String.IsNullOrEmpty(cloudpath) AndAlso Not DBNull.Value.Equals(rdr("cloudpath")) Then
+                                        cloudpath = rdr("cloudpath").ToString()
+                                    End If
+                                    If tienda Is Nothing Then tienda = New Estructuras.lugar()
+                                    tienda.load(dbIdTi)
+                                End If
+                            End Using
+                        End Using
+                    End Using
+                Catch
+                End Try
+            End If
+
+            ' 3. Asegurar carpeta raíz de buzones en la nube (<cloudpath>\sync_deltas\inboxes\)
+            Dim inboxesBase As String = GetInboxesBasePath()
+            If Not Directory.Exists(inboxesBase) Then
+                Directory.CreateDirectory(inboxesBase)
+                createdFolders.Add(inboxesBase)
+            End If
+
+            ' 4. Consultar todas las tiendas registradas en la base de datos (Lugares)
+            Dim storesInDb As New List(Of String)()
+            Try
+                Dim cs As String = GetOleDbConnectionString("C:\sc3\syste.dat", "sganeo4")
+                Using conn As New OleDbConnection(cs)
+                    conn.Open()
+                    Using cmd As New OleDbCommand("SELECT apodo FROM Lugares WHERE apodo IS NOT NULL", conn)
+                        Using rdr = cmd.ExecuteReader()
+                            While rdr.Read()
+                                Dim ap As String = rdr("apodo").ToString().Trim().ToLower()
+                                If Not String.IsNullOrEmpty(ap) AndAlso Not storesInDb.Contains(ap) Then
+                                    storesInDb.Add(ap)
+                                End If
+                            End While
+                        End Using
+                    End Using
+                End Using
+            Catch exDb As Exception
+                SyncLog("Error al consultar Lugares en EnsureCloudInboxesExist: " & exDb.Message, True)
+            End Try
+
+            ' Asegurar también el apodo de la tienda actual
+            If tienda IsNot Nothing AndAlso Not String.IsNullOrEmpty(tienda.apodo) Then
+                Dim myApodo As String = tienda.apodo.Trim().ToLower()
+                If Not storesInDb.Contains(myApodo) Then storesInDb.Add(myApodo)
+            End If
+
+            ' 5. Crear la carpeta inboxes/<apodo>/ para cada tienda registrada si no existe
+            For Each ap In storesInDb
+                Dim storeInbox As String = Path.Combine(inboxesBase, ap)
+                If Not Directory.Exists(storeInbox) Then
+                    Directory.CreateDirectory(storeInbox)
+                    createdFolders.Add(storeInbox)
+                    SyncLog("Creado buzón en la nube para tienda '" & ap & "': " & storeInbox)
+                End If
+            Next
+
+            If createdFolders.Count > 0 Then
+                SyncLog("EnsureCloudInboxesExist: Se crearon " & createdFolders.Count & " carpetas de buzones.")
+            End If
+
+        Catch ex As Exception
+            SyncLog("Error general en EnsureCloudInboxesExist: " & ex.Message, True)
+        End Try
+
+        Return createdFolders
+    End Function
+
+    ''' <summary>
     ''' Obtiene la lista de apodos de todas las tiendas de destino registradas (omitiendo la tienda actual).
     ''' </summary>
     Public Function GetDestinationStoreApodos() As List(Of String)
@@ -396,6 +488,8 @@ Public Module nube
             Dim files As String() = Directory.GetFiles(outboxDir, "*.json")
             If files.Length = 0 Then Exit Sub
 
+            EnsureCloudInboxesExist()
+
             Dim destStores As List(Of String) = GetDestinationStoreApodos()
             Dim enviados As Integer = 0
 
@@ -451,7 +545,8 @@ Public Module nube
         End SyncLock
 
         Try
-            ' 1. Intentar vaciar el outbox local por si hay paquetes pendientes
+            ' 1. Asegurar buzones y vaciar el outbox local por si hay paquetes pendientes
+            EnsureCloudInboxesExist()
             PushOutbox()
 
             Dim myInboxDir As String = GetMyInboxPath()

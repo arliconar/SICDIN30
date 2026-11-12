@@ -103,6 +103,13 @@ Public Class loader
             tienda = New lugar
             tienda.load(idti)
 
+            UpdateLoaderStatus("Verificando buzones de sincronización...", 90)
+            Try
+                EnsureCloudInboxesExist()
+            Catch exInb As Exception
+                LogAppError(exInb, "loader.EnsureCloudInboxesExist")
+            End Try
+
             diaventa = New diatrabajo
             diaventa.abrirdia(user)
 

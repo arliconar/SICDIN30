@@ -292,4 +292,30 @@ Public Class DeltaFileRecognitionTests
         End Try
     End Sub
 
+    <TestMethod>
+    Public Sub Test_EnsureCloudInboxesExist_CreatesStoreInboxesFromDatabase()
+        ' Arrange: Asegurar ruta de nube de prueba
+        Dim testBaseInboxes As String = nube.GetInboxesBasePath()
+        variables.tienda.apodo = "tienda_test_inbox"
+
+        ' Act: Ejecutar creación y verificación de buzones
+        Dim created = nube.EnsureCloudInboxesExist()
+
+        ' Assert: La carpeta base de buzones debe existir
+        Assert.IsTrue(Directory.Exists(testBaseInboxes), "La carpeta base 'inboxes' debe existir.")
+
+        ' El buzón de la tienda activa debe existir
+        Dim myInbox = Path.Combine(testBaseInboxes, "tienda_test_inbox")
+        Assert.IsTrue(Directory.Exists(myInbox), "El buzón de la tienda activa debe haberse creado.")
+
+        ' El directorio de outbox local también debe existir
+        Assert.IsTrue(Directory.Exists(nube.GetLocalOutboxPath()), "La carpeta local sync_outbox debe existir.")
+
+        ' Limpiar carpeta de prueba de tienda_test_inbox
+        Try
+            If Directory.Exists(myInbox) Then Directory.Delete(myInbox, True)
+        Catch
+        End Try
+    End Sub
+
 End Class
