@@ -34,6 +34,27 @@ Public Class DatabaseSyncTests
 
         artConnStr = nube.GetOleDbConnectionString("C:\sc3\art.dat", "sganeo4")
         clntConnStr = nube.GetOleDbConnectionString("C:\sc3\clnt.dat", "sganeo4")
+        EnsureDatabaseAvailable()
+    End Sub
+
+    Private Function IsDatabaseDriverAndFilesAvailable() As Boolean
+        Try
+            If Not File.Exists("C:\sc3\art.dat") OrElse Not File.Exists("C:\sc3\clnt.dat") Then
+                Return False
+            End If
+            Using conn As New OleDbConnection(artConnStr)
+                conn.Open()
+                Return True
+            End Using
+        Catch
+            Return False
+        End Try
+    End Function
+
+    Private Sub EnsureDatabaseAvailable()
+        If Not IsDatabaseDriverAndFilesAvailable() Then
+            Assert.Inconclusive("Prueba omitida: El proveedor Microsoft.ACE.OLEDB o los archivos locales C:\sc3\art.dat y clnt.dat no están disponibles en este entorno (ejecutándose en CI/GitHub Actions).")
+        End If
     End Sub
 
     <TestCleanup>
@@ -67,6 +88,7 @@ Public Class DatabaseSyncTests
 
     <TestMethod>
     Public Sub Test_DatabaseSync_InsertsNewArticle_WithPricesAndMetadata()
+        EnsureDatabaseAvailable()
         Dim testClave As String = "TEST_DB_INS_001"
         Dim deltaName As String = "tienda_remota_ART_testdb_ins_" & Guid.NewGuid().ToString("N").Substring(0, 6) & ".json"
 
@@ -120,6 +142,7 @@ Public Class DatabaseSyncTests
 
     <TestMethod>
     Public Sub Test_DatabaseSync_UpdatesExistingArticle_WhenRemoteFumIsNewer()
+        EnsureDatabaseAvailable()
         Dim testClave As String = "TEST_DB_UPD_001"
         Dim deltaName As String = "tienda_remota_ART_testdb_upd_" & Guid.NewGuid().ToString("N").Substring(0, 6) & ".json"
 
@@ -176,6 +199,7 @@ Public Class DatabaseSyncTests
 
     <TestMethod>
     Public Sub Test_DatabaseSync_DoesNotOverwriteExistingArticle_WhenRemoteFumIsOlder()
+        EnsureDatabaseAvailable()
         Dim testClave As String = "TEST_DB_OLD_001"
         Dim deltaName As String = "tienda_remota_ART_testdb_old_" & Guid.NewGuid().ToString("N").Substring(0, 6) & ".json"
 
@@ -229,6 +253,7 @@ Public Class DatabaseSyncTests
 
     <TestMethod>
     Public Sub Test_DatabaseSync_SoftDeletesArticle()
+        EnsureDatabaseAvailable()
         Dim testClave As String = "TEST_DB_DEL_001"
         Dim deltaName As String = "tienda_remota_ART_testdb_del_" & Guid.NewGuid().ToString("N").Substring(0, 6) & ".json"
 
@@ -277,6 +302,7 @@ Public Class DatabaseSyncTests
 
     <TestMethod>
     Public Sub Test_DatabaseSync_InsertsClientSafely_WithoutIdCollision()
+        EnsureDatabaseAvailable()
         Dim testRFC As String = "CLTE888801"
         Dim testNombre As String = "Cliente Test BaseDatos Unico"
         Dim deltaName1 As String = "tienda_remota_CLN_testdb_clnt1_" & Guid.NewGuid().ToString("N").Substring(0, 6) & ".json"
