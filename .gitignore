@@ -92,6 +92,7 @@ publish/
 *.[Pp]ublish.xml
 *.azurePubxml
 *.pubxml
+!**/PublishProfiles/*.pubxml
 *.publishproj
 *.pfx
 *.snk

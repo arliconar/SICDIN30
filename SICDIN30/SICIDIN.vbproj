@@ -24,6 +24,7 @@
 
     <Platforms>x64;x86;AnyCPU</Platforms>
     <PlatformTarget>x64</PlatformTarget>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
   </PropertyGroup>
 
   <ItemGroup>

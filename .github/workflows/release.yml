@@ -45,41 +45,85 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
       - name: Restore dependencies
-        run: dotnet restore SICDIN30/SICIDIN.vbproj
-
-      - name: Publish (.NET 8 Release)
         run: |
-          dotnet publish SICDIN30/SICIDIN.vbproj -c Release -o SICDIN30/bin/Publish
+          dotnet restore SICDIN30/SICIDIN.vbproj -r win-x64
+          dotnet restore SICDIN30.Tests/SICDIN30.Tests.vbproj
 
-      - name: Package Release Assets
+      - name: Run Unit Tests
+        run: |
+          dotnet test SICDIN30.Tests/SICDIN30.Tests.vbproj -c Release --no-restore
+
+      - name: Build ClickOnce Auto-Installer & Portable Release
         shell: pwsh
         run: |
           $tag = '${{ steps.vars.outputs.tag }}'
           $dist = 'dist'
           if (Test-Path $dist) { Remove-Item -Recurse -Force $dist }
+          New-Item -ItemType Directory -Path $dist -Force | Out-Null
+
+          $installerDir = Join-Path $dist 'installer'
           $fullPkg = Join-Path $dist 'SICDIN30-Full'
           New-Item -ItemType Directory -Path (Join-Path $fullPkg 'Resources') -Force | Out-Null
 
-          # Copiar binarios y dependencias publicadas (.NET 8)
-          Copy-Item 'SICDIN30\bin\Publish\*' "$dist\" -Recurse
-          Copy-Item 'SICDIN30\bin\Publish\*' "$fullPkg\" -Recurse
+          # 1. Determinar versión numérica válida para ClickOnce (Major.Minor.Build.Revision)
+          $cleanVersion = ($tag -replace '^[^\d]*', '')
+          $parts = $cleanVersion.Split('.')
+          $vMajor = if ($parts.Length -gt 0 -and $parts[0] -match '^\d+$') { [int]$parts[0] } else { 1 }
+          $vMinor = if ($parts.Length -gt 1 -and $parts[1] -match '^\d+$') { [int]$parts[1] } else { 0 }
+          $vBuild = if ($parts.Length -gt 2 -and $parts[2] -match '^\d+$') { [int]$parts[2] } else { 8 }
+          $vRev   = if ($parts.Length -gt 3 -and $parts[3] -match '^\d+$') { [int]$parts[3] } else { (Get-Date -Format 'HHmm') }
+          $appVersion = "$vMajor.$vMinor.$vBuild.$vRev"
+          Write-Host "Compiling ClickOnce Auto-Installer with ApplicationVersion: $appVersion"
+
+          # 2. Publicar ClickOnce mediante MSBuild (genera setup.exe, manifests y Application Files)
+          msbuild SICDIN30/SICIDIN.vbproj `
+            /target:publish `
+            /p:PublishProfile=ClickOnceProfile `
+            /p:Configuration=Release `
+            /p:ApplicationVersion=$appVersion `
+            /p:PublishDir="${PWD}\$installerDir\" `
+            /v:minimal
+
+          # 3. Empaquetar el paquete instalador completo ClickOnce
+          if (Test-Path $installerDir) {
+              Compress-Archive -Path "$installerDir\*" -DestinationPath "$dist\SICDIN30-Installer-$tag.zip" -Force
+              if (Test-Path "$installerDir\setup.exe") {
+                  Copy-Item "$installerDir\setup.exe" "$dist\setup.exe"
+              }
+          }
+
+          # 4. Publicar versión portable / standalone con dotnet publish
+          dotnet publish SICDIN30/SICIDIN.vbproj -c Release -r win-x64 --no-self-contained -o "$dist\publish"
+
+          # Copiar archivos portables
+          Copy-Item "$dist\publish\*" "$fullPkg\" -Recurse
+          if (Test-Path "$dist\publish\SICDIN30.exe") {
+              Copy-Item "$dist\publish\SICDIN30.exe" "$dist\"
+          }
 
           # Copiar archivo de base de datos / estructura si existe
           if (Test-Path 'syste.dat') {
               Copy-Item 'syste.dat' "$fullPkg\"
           }
 
-          # 1. Empaquetar todo lo de Resources en un zip dedicado (resources.zip)
+          # 5. Empaquetar recursos en un zip dedicado (resources.zip)
           if (Test-Path 'SICDIN30\Resources') {
               Copy-Item 'SICDIN30\Resources\*' (Join-Path $fullPkg 'Resources') -Recurse
               Compress-Archive -Path 'SICDIN30\Resources\*' -DestinationPath "$dist\resources.zip" -Force
           }
 
-          # 2. Empaquetar la distribución completa lista para usar (.exe + dlls + resources + config)
+          # 6. Empaquetar distribución completa portable
           Compress-Archive -Path "$fullPkg\*" -DestinationPath "$dist\SICDIN30-Full-$tag.zip" -Force
 
-          Write-Host "Archivos generados en $($dist):"
+          # Limpieza de temporales internos
+          if (Test-Path "$dist\publish") { Remove-Item -Recurse -Force "$dist\publish" }
+          if (Test-Path "$fullPkg") { Remove-Item -Recurse -Force "$fullPkg" }
+
+          Write-Host "Archivos generados exitosamente en $($dist):"
           Get-ChildItem $dist
 
       - name: Create GitHub Release
@@ -91,9 +135,10 @@ jobs:
           prerelease: false
           generate_release_notes: true
           files: |
+            dist/SICDIN30-Installer-*.zip
+            dist/setup.exe
             dist/SICDIN30.exe
             dist/resources.zip
             dist/SICDIN30-Full-*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
